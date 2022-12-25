@@ -76,7 +76,8 @@
                         </div>
                         <q-card-section>
                           <div class="text">{{item.name}}</div>
-                          <div class="text text-grey-8">AED {{item.price.toFixed(2)}}</div>
+                          <div class="text text-grey-8" v-if="item.price > 0">AED {{item.price.toFixed(2)}}</div>
+                          <q-chip color="grey-2" class="q-ma-none" text-color="grey-8" square v-else>Price on Selection</q-chip>
                         </q-card-section>
                       </q-card>
                     </div>
@@ -84,9 +85,10 @@
                 </q-card-section>
               </q-card>
             </template>
+            <div class="window-height"></div>
           </q-card-section>
         </q-card>
-        <div class="fixed-bottom full-width total-block" :class="totalBlockClass">
+        <div class="fixed-bottom full-width total-block show" v-show="cartStore.items.length > 0">
           <q-card flat>
             <q-card-section>
               <div class="row">
@@ -94,7 +96,7 @@
                   <div class="text-subtitle1 text-bold">Total</div>
                 </div>
                 <div class="col">
-                  <div class="text-subtitle1 text-bold text-right">AED 35.00</div>
+                  <div class="text-subtitle1 text-bold text-right">{{cartStore.cartTotal}}</div>
                 </div>
               </div>
             </q-card-section>
@@ -126,44 +128,102 @@
     </div>
   </q-page>
   <q-dialog v-model="itemDialog" position="bottom">
-    <q-card style="width: 500px; max-width: 100%;" v-if="cartItem">
-      <div class="relative-position">
-        <q-img :src="cartItem.item.cover" class="relative-position"></q-img>
-        <q-btn
-          color="white"
-          text-color="black"
-          round icon="close"
-          size="sm"
-          class="absolute-top-right q-mt-sm q-mr-sm"
-          v-close-popup></q-btn>
-      </div>
-      <q-separator/>
-      <q-card-section>
-        <div class="text-subtitle1 text-bold">{{cartItem.item.name}}</div>
-        <div class="text-grey-7 text-caption">{{cartItem.item.description}}</div>
-        <div class="text-subtitle2 text-grey-8">AED {{cartItem.item.price.toFixed(2)}}</div>
-      </q-card-section>
-      <q-card-section>
-        <div class="text-subtitle1">Instructions</div>
-        <q-input type="textarea" v-model="cartItem.instructions" rows="2" outlined placeholder="Let us know if you have special requirements"></q-input>
-      </q-card-section>
-      <q-card-actions>
-        <div class="row q-col-gutter-md full-width q-px-sm">
-          <div class="col-auto flex justify-start items-center">
-            <q-btn round size="sm" icon="remove" color="grey-3" text-color="black" @click="removeQty"></q-btn>
-            <div class="text-subtitle2 q-mx-md">{{cartItem.qty.toString()}}</div>
-            <q-btn round size="sm" icon="add" color="grey-3" text-color="black" @click="addQty"></q-btn>
+    <div class="bg-grey-3" ref="itemDialogRef">
+      <template v-if="cartItem">
+        <q-card style="width: 500px; max-width: 100%;" flat>
+          <div class="relative-position">
+            <q-img :src="cartItem.item.cover" class="relative-position"></q-img>
+            <q-btn
+              color="white"
+              text-color="black"
+              round icon="close"
+              size="sm"
+              class="absolute-top-right q-mt-sm q-mr-sm"
+              v-close-popup></q-btn>
           </div>
-          <div class="col">
-            <q-btn color="yellow-9" class="full-width" :label="cartItemButtonLabel" @click="addItem"></q-btn>
-          </div>
-        </div>
-      </q-card-actions>
-    </q-card>
+          <q-separator/>
+          <q-card-section>
+            <div class="text-subtitle1 text-bold">{{cartItem.item.name}}</div>
+            <div class="text-grey-7 text-caption">{{cartItem.item.description}}</div>
+            <div class="text-subtitle2 text-grey-8">AED {{cartItem.item.price.toFixed(2)}}</div>
+          </q-card-section>
+        </q-card>
+        <template v-for="(addon_cat,k) in cartItem.item.item_addon_categories" :key="k">
+          <q-card class="q-my-xs" flat ref="cartCatRefs">
+            <q-card-section>
+              <div class="row justify-between">
+                <div class="col">
+                  <div class="text-bold">{{addon_cat.name}}</div>
+                </div>
+                <div class="col-auto" v-if="addon_cat.type === 'single'">
+                  <div class="text-caption text-red-7">Required</div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <div class="text-caption text-red-7">
+                    <template v-if="addon_cat.type === 'single'">Choose 1</template>
+                    <template v-else>
+                      <template v-if="addon_cat.min_selection === 0">
+                        <span class="text-grey-8" v-if="addon_cat.max_selection === addon_cat.item_addons.length || addon_cat.max_selection == 0">Optional</span>
+                        <span class="text-grey-8" v-else>Optional. Max selection upto {{addon_cat.max_selection}}</span>
+                      </template>
+                      <template v-else-if="addon_cat.item_addons.length === addon_cat.max_selection">
+                        Select at least {{addon_cat.min_selection}}
+                      </template>
+                      <template v-else>
+                        Select at least {{addon_cat.min_selection}} upto {{addon_cat.max_selection}}
+                      </template>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+            <q-separator/>
+            <q-card-section class="q-pa-none">
+              <q-list>
+                <q-item v-ripple v-for="(addon,m) in addon_cat.item_addons" :key="m">
+                  <q-item-section avatar>
+                    <q-radio v-if="addon_cat.type === 'single'" :val="addon.id" v-model="addon_cat.selected_addon_id"></q-radio>
+                    <q-checkbox v-else :val="addon.id" v-model="addon_cat.selected_addon_ids"></q-checkbox>
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>
+                      {{addon.name}}
+                    </q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    AED {{addon.price.toFixed(2)}}
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card>
+        </template>
+        <q-card>
+          <q-card-section>
+            <div class="text-subtitle1">Instructions</div>
+            <q-input type="textarea" v-model="cartItem.instructions" rows="2" outlined placeholder="Let us know if you have special requirements"></q-input>
+          </q-card-section>
+          <q-card-actions>
+            <div class="row q-col-gutter-md full-width q-px-sm">
+              <div class="col-auto flex justify-start items-center">
+                <q-btn round size="sm" icon="remove" color="grey-3" text-color="black" @click="removeQty"></q-btn>
+                <div class="text-subtitle2 q-mx-md">{{cartItem.qty.toString()}}</div>
+                <q-btn round size="sm" icon="add" color="grey-3" text-color="black" @click="addQty"></q-btn>
+              </div>
+              <div class="col">
+                <q-btn color="yellow-9" class="full-width" :label="cartItemButtonLabel" @click="addItem"></q-btn>
+              </div>
+            </div>
+          </q-card-actions>
+        </q-card>
+      </template>
+    </div>
   </q-dialog>
 </template>
 <script lang="ts" setup>
-import { QPage, QCard, QCardSection, QImg, QAvatar, QSeparator, QBtn } from 'quasar';
+import {QPage, QCard, QCardSection, QImg, QAvatar, QSeparator, QBtn, QItem, LocalStorage} from 'quasar';
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {api} from 'boot/axios';
@@ -176,7 +236,8 @@ const cartStore = useCartStore()
 const active = ref(0)
 const headerRef = ref<HTMLElement | null>(null)
 const refElements = ref([])
-
+let observer: IntersectionObserver | null = null
+const itemDialogRef = ref<HTMLElement|null>(null)
 onMounted(async () => {
   const store_id = parseInt($route.params.store_id as string)
   const uuid = $route.params.table_uuid as string
@@ -186,28 +247,51 @@ onMounted(async () => {
   } catch(e) {
     await $router.push('/')
   }
-  nextTick(() => {
-    const headerHeight = headerRef.value?.getBoundingClientRect().height as number +12
-    const rootMargin = '-'+headerHeight+'px 0px -' + (window.innerHeight - headerHeight) + 'px' + ' 0px'
-    let observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        const id = entry.target.getAttribute('data-id')
-        if (entry.isIntersecting) {
-          console.log('yes')
-          active.value = parseInt(id as string)
-        }
-      })
-    }, {
-      root: null,
-      rootMargin: rootMargin,
-      threshold: 0
+  const headerHeight = headerRef.value?.getBoundingClientRect().height as number +20
+  const rootMargin = '-'+headerHeight+'px 0px -' + (window.innerHeight - headerHeight) + 'px' + ' 0px'
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const id = entry.target.getAttribute('data-id')
+      if (entry.isIntersecting) {
+        console.log('yes')
+        active.value = parseInt(id as string)
+      }
     })
-
+  }, {
+    root: null,
+    rootMargin: rootMargin,
+    threshold: 0
+  })
+  await nextTick(() => {
     refElements.value.forEach((item: QCard) => {
-      observer.observe(item.$el)
+      observer?.observe(item.$el)
+    })
+  })
+
+  window.addEventListener('resize', function () {
+    refElements.value.forEach((item: QCard) => {
+      observer?.unobserve(item.$el)
+      const rootMargin = '-'+headerHeight+'px 0px -' + (window.innerHeight - headerHeight) + 'px' + ' 0px'
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.getAttribute('data-id')
+          if (entry.isIntersecting) {
+            console.log('yes')
+            active.value = parseInt(id as string)
+          }
+        })
+      }, {
+        root: null,
+        rootMargin: rootMargin,
+        threshold: 0
+      })
+      refElements.value.forEach((item: QCard) => {
+        observer?.observe(item.$el)
+      })
     })
   })
 })
+
 function onUpdateTab(val: number) {
   const card = refElements.value[val] as QCard
   const el = card.$el as HTMLElement
@@ -235,7 +319,6 @@ const $route = useRoute()
 const $router = useRouter()
 const model = ref<TableMenu|null>(null)
 
-
 const tableNumber = computed(() => {
   return model.value ? model.value.table_info.table_number : ''
 })
@@ -243,11 +326,12 @@ const tableNumber = computed(() => {
 const itemDialog = ref(false)
 
 const cartItem = ref<CartItem|null>(null)
+
 function openItemDialog(obj: Item) {
   cartItem.value = {
-    item: obj,
+    item: JSON.parse(JSON.stringify(obj)) as Item,
     qty: 1,
-    instructions: ''
+    instructions: '',
   }
   itemDialog.value = true
 }
@@ -267,16 +351,98 @@ function removeQty() {
 
 const cartItemButtonLabel = computed(() => {
   if(cartItem.value) {
-    return 'Add to Basket | '+(cartItem.value.item.price * cartItem.value.qty).toFixed(2)
+    let price = cartItem.value.item.price;
+    cartItem.value.item.item_addon_categories?.forEach((itemAddonCategory) => {
+      if(itemAddonCategory.type == 'single' && itemAddonCategory.selected_addon_id) {
+        const selectedAddon = itemAddonCategory.item_addons.find((addon) => addon.id == itemAddonCategory.selected_addon_id)
+        price += selectedAddon?.price || 0
+      }
+    })
+    const total = price * cartItem.value.qty
+    return 'Add to Basket | AED '+(total).toFixed(2)
   }
   return ''
 })
 
 function addItem() {
   if(cartItem.value) {
-    cartStore.addItem(cartItem.value)
-    cartItem.value = null
-    itemDialog.value = false
+    let flag = true
+    cartItem.value.item.item_addon_categories?.every((cat,i) => {
+      if(cat.type == 'single') {
+        if(!cat.selected_addon_id) {
+          const catRef = cartCatRefs.value[i] as QItem
+          catRef.$el.scrollIntoView({
+            behavior:'smooth'
+          })
+          flag = false
+          return false
+        }
+      } else {
+        if(cat.min_selection > 0) {
+          if(cat.selected_addon_ids.length < cat.min_selection) {
+            flag = false
+            return false
+          }
+        }
+        if(cat.max_selection > 0){
+          if(cat.selected_addon_ids.length > cat.max_selection) {
+            flag = false
+            return false
+          }
+        }
+      }
+      return true // This is required for Array.every() function (JS)
+    })
+    if(flag) {
+      let addNew = true
+      let updateIndex: number|null = null
+      cartStore.items.every((cItem,index) => {
+        if(cItem.item.id == cartItem.value?.item.id) {
+          if(cItem.instructions == cartItem.value.instructions) {
+            const selectedAddons1:number[] = []
+            cItem.item.item_addon_categories?.every((addonCat) => {
+              if(addonCat.type == 'single') {
+                selectedAddons1.push(addonCat.selected_addon_id)
+              } else {
+                if(addonCat.selected_addon_ids) {
+                  addonCat.selected_addon_ids.forEach(id => {
+                    selectedAddons1.push(id)
+                  })
+                }
+              }
+            })
+            const selectedAddons2:number[] = []
+            cartItem.value.item.item_addon_categories?.every((addonCat) => {
+              if(addonCat.type == 'single') {
+                selectedAddons2.push(addonCat.selected_addon_id)
+              } else {
+                if(addonCat.selected_addon_ids) {
+                  addonCat.selected_addon_ids.forEach(id => {
+                    selectedAddons2.push(id)
+                  })
+                }
+              }
+            })
+            if(selectedAddons1.sort().join() == selectedAddons2.sort().join()) {
+              addNew = false
+              updateIndex = index
+            }
+          }
+          return false
+        }
+        return true
+      })
+      if(addNew) {
+        cartStore.addItem(cartItem.value)
+      } else {
+        if(updateIndex !== null)
+          cartStore.items[updateIndex].qty += cartItem.value.qty
+      }
+      LocalStorage.set('cartItems',cartStore.items)
+      LocalStorage.set('instructions',cartStore.instruction)
+      cartItem.value = null
+      itemDialog.value = false
+    }
   }
 }
 
@@ -289,4 +455,7 @@ watch(cartItems.value,(newV) => {
     totalBlockClass.value = ''
   }
 })
+
+const cartCatRefs = ref<QItem[]>([])
+
 </script>

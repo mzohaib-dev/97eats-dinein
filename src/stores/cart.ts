@@ -9,7 +9,20 @@ export const useCartStore = defineStore('cart', {
   }),
 
   getters: {
-
+    cartTotal():string {
+      let total = 0
+      this.items.forEach((cartItem) => {
+        let price = cartItem.item.price;
+        cartItem.item.item_addon_categories?.forEach((itemAddonCategory) => {
+          if(itemAddonCategory.type == 'single' && itemAddonCategory.selected_addon_id) {
+            const selectedAddon = itemAddonCategory.item_addons.find((addon) => addon.id == itemAddonCategory.selected_addon_id)
+            price += selectedAddon?.price || 0
+          }
+        })
+        total += price * cartItem.qty
+      })
+      return total.toFixed(2)
+    }
   },
 
   actions: {

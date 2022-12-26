@@ -237,8 +237,10 @@ const $router = useRouter()
 const store_id = parseInt($route.params.store_id as string)
 const uuid = $route.params.table_uuid as string
 onMounted(async () => {
+  console.log('Menu Mounted')
   Loading.show()
   await appStore.init()
+  console.log('Appstore initiated')
   LocalStorage.set('tableUuid',uuid)
   try {
     const response: { data: TableMenu } = await api.get('stores/' + store_id.toString() + '/menu?table_uuid=' + uuid)

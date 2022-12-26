@@ -1,7 +1,15 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-page-container>
-      <router-view />
+      <q-page>
+        <div class="row bg-grey-3">
+          <div class="col-12 col-md-4"></div>
+          <div class="col-12 col-md-4 relative-position">
+            <router-view />
+          </div>
+          <div class="col-12 col-md-4"></div>
+        </div>
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>
@@ -9,18 +17,38 @@
 <script setup lang="ts">
 import {onMounted} from 'vue';
 import {LocalStorage} from 'quasar';
-import {useCartStore} from 'stores/cart';
 import {CartItem} from 'src/models/Cart';
-const cartStore = useCartStore()
+import {useRoute} from 'vue-router';
+import {useCartStore} from 'stores/cart';
+import {useAppStore} from 'stores/app';
+const $route = useRoute();
+const cartStore = useCartStore();
+const appStore = useAppStore();
 onMounted(() => {
-  const cartItems = LocalStorage.getItem('cartItems')
+  const uuid = $route.params.table_uuid as string
+  cartStore.table_uuid = uuid
+  const tableUuidLocal = LocalStorage.getItem('tableUuid')
+  if(uuid == tableUuidLocal) {
+    const cartItems = LocalStorage.getItem('cartItems')
+    if (cartItems) {
+      cartStore.items = cartItems as CartItem[]
+    } else {
+      cartStore.resetCart()
+      return
+    }
+    const instructions = LocalStorage.getItem('instructions')
+    if (instructions) {
+      cartStore.instruction = instructions as string
+    }
+    const tableNumber = LocalStorage.getItem('tableNumber') as string
+    if(tableNumber){
+      cartStore.table_number = tableNumber
+    } else {
+      cartStore.resetCart()
+      return
+    }
+  }
 
-  if(cartItems) {
-    cartStore.items = cartItems as CartItem[]
-  }
-  const instructions = LocalStorage.getItem('instructions')
-  if(instructions) {
-    cartStore.instruction = instructions as string
-  }
+
 })
 </script>

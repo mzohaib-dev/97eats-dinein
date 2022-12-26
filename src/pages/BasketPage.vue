@@ -143,7 +143,13 @@ onMounted(async () => {
   try {
     const res = await appStore.init()
     if(res === 'unauthenticated') {
-      await goBack()
+      await $router.push({
+        name:'Login',
+        params: {store_id: store_id, table_uuid: uuid}
+      })
+    }
+    if(cartStore.items.length == 0) {
+      basketEmptyDialog.value = true
     }
   } catch (e) {
     console.log(e)

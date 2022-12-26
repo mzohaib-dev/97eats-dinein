@@ -29,7 +29,7 @@
 </template>
 <script lang="ts" setup>
 import {useRoute, useRouter} from 'vue-router';
-import VOtpInput from "vue3-otp-input";
+import VOtpInput from 'vue3-otp-input';
 import {onMounted, ref} from 'vue';
 import {api} from 'boot/axios';
 import {Loading, LocalStorage, Notify} from 'quasar';

@@ -34,19 +34,5 @@ export default route(function ( {store},/* ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
-  Router.beforeEach((to,from) => {
-    if (to.meta.requiresAuth) {
-      if(!appStore.user)
-      // redirect the user to the login page
-      return {
-        name: 'Login',
-        params: {
-          store_id:to.params.store_id,
-          table_uuid: to.params.table_uuid
-        }
-      }
-    }
-  })
-
   return Router;
 });

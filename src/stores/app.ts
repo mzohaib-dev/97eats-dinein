@@ -14,7 +14,7 @@ export const useAppStore = defineStore('app', {
 
   actions: {
     async init() {
-      return new Promise<string>((resolve, reject) => {
+      return new Promise<string>((resolve) => {
         const token = LocalStorage.getItem('token')
         if (token) {
           Loading.show()
@@ -29,6 +29,7 @@ export const useAppStore = defineStore('app', {
               resolve('unauthenticated')
             }
           }).catch((e) => {
+            console.log(e)
             LocalStorage.remove('token')
             this.user = null
             resolve('unauthenticated')

@@ -35,6 +35,8 @@ export const useAppStore = defineStore('app', {
             resolve('unauthenticated')
           })
           Loading.hide()
+        } else {
+          resolve('unauthenticated')
         }
       })
     }

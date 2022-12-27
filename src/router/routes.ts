@@ -25,6 +25,16 @@ const routes: RouteRecordRaw[] = [
         path:'store/:store_id/:table_uuid/checkout',
         component:() => import('pages/BasketPage.vue'),
         name: 'Basket',
+      },
+      {
+        path:'store/:store_id/:table_uuid/payment/success',
+        component:() => import('pages/PaymentSuccess.vue'),
+        name: 'PaymentSuccess',
+      },
+      {
+        path:'store/:store_id/:table_uuid/payment/failure',
+        component:() => import('pages/PaymentFailure.vue'),
+        name: 'PaymentFailure',
       }
     ],
   },

@@ -92,7 +92,7 @@
           <div class="text-subtitle1 text-bold">Total</div>
         </div>
         <div class="col">
-          <div class="text-subtitle1 text-bold text-right">{{cartStore.cartTotal}}</div>
+          <div class="text-subtitle1 text-bold text-right">AED {{cartStore.cartTotal.toFixed(2)}}</div>
         </div>
       </div>
     </q-card-section>
@@ -121,10 +121,10 @@
 </q-dialog>
 <q-dialog v-model="itemDialog" position="bottom">
   <div class="bg-grey-3" ref="itemDialogRef">
-    <template v-if="cartItem">
+    <template v-if="itemModel">
       <q-card style="width: 500px; max-width: 100%;" flat>
         <div class="relative-position">
-          <q-img :src="cartItem.item.cover" class="relative-position"></q-img>
+          <q-img :src="itemModel.item.cover" class="relative-position"></q-img>
           <q-btn
             color="white"
             text-color="black"
@@ -135,12 +135,12 @@
         </div>
         <q-separator/>
         <q-card-section>
-          <div class="text-subtitle1 text-bold">{{cartItem.item.name}}</div>
-          <div class="text-grey-7 text-caption">{{cartItem.item.description}}</div>
-          <div class="text-subtitle2 text-grey-8">AED {{cartItem.item.price.toFixed(2)}}</div>
+          <div class="text-subtitle1 text-bold">{{itemModel.item.name}}</div>
+          <div class="text-grey-7 text-caption">{{itemModel.item.description}}</div>
+          <div class="text-subtitle2 text-grey-8">AED {{itemModel.item.price.toFixed(2)}}</div>
         </q-card-section>
       </q-card>
-      <template v-for="(addon_cat,k) in cartItem.item.item_addon_categories" :key="k">
+      <template v-for="(addon_cat,k) in itemModel.item.item_addon_categories" :key="k">
         <q-card class="q-my-xs" flat ref="cartCatRefs">
           <q-card-section>
             <div class="row justify-between">
@@ -195,17 +195,17 @@
       <q-card>
         <q-card-section>
           <div class="text-subtitle1">Instructions</div>
-          <q-input type="textarea" v-model="cartItem.instructions" rows="2" outlined placeholder="Let us know if you have special requirements"></q-input>
+          <q-input type="textarea" v-model="itemModel.instructions" rows="2" outlined placeholder="Let us know if you have special requirements"></q-input>
         </q-card-section>
         <q-card-actions>
           <div class="row q-col-gutter-md full-width q-px-sm">
             <div class="col-auto flex justify-start items-center">
               <q-btn round size="sm" icon="remove" color="grey-3" text-color="black" @click="removeQty"></q-btn>
-              <div class="text-subtitle2 q-mx-md">{{cartItem.qty.toString()}}</div>
+              <div class="text-subtitle2 q-mx-md">{{itemModel.qty.toString()}}</div>
               <q-btn round size="sm" icon="add" color="grey-3" text-color="black" @click="addQty"></q-btn>
             </div>
             <div class="col">
-              <q-btn color="yellow-9" class="full-width" :label="cartItemButtonLabel" @click="addItem"></q-btn>
+              <q-btn color="yellow-9" class="full-width" :label="itemModelButtonLabel" @click="addItem"></q-btn>
             </div>
           </div>
         </q-card-actions>
@@ -215,13 +215,13 @@
 </q-dialog>
 </template>
 <script lang="ts" setup>
-import {QPage, QCard, QCardSection, QImg, QAvatar, QSeparator, QBtn, QItem, LocalStorage, Loading} from 'quasar';
+import {QCard, QCardSection, QImg, QAvatar, QSeparator, QBtn, QItem, LocalStorage, Loading} from 'quasar';
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {api} from 'boot/axios';
 import {TableMenu} from 'src/models/Table';
 import {Item} from 'src/models/Item';
-import {CartItem} from 'src/models/Cart';
+import {CartItem, CartItemAddon} from 'src/models/Cart';
 import {useCartStore} from 'stores/cart';
 import {useAppStore} from 'stores/app';
 
@@ -237,11 +237,8 @@ const $router = useRouter()
 const store_id = parseInt($route.params.store_id as string)
 const uuid = $route.params.table_uuid as string
 onMounted(async () => {
-  console.log('Menu Mounted')
   Loading.show()
   await appStore.init()
-  console.log('Appstore initiated')
-  LocalStorage.set('tableUuid',uuid)
   try {
     const response: { data: TableMenu } = await api.get('stores/' + store_id.toString() + '/menu?table_uuid=' + uuid)
     model.value = response.data
@@ -326,10 +323,10 @@ const tableNumber = computed(() => {
 
 const itemDialog = ref(false)
 
-const cartItem = ref<CartItem|null>(null)
+const itemModel = ref<{item: Item, qty: number, instructions: string}|null>(null)
 
 function openItemDialog(obj: Item) {
-  cartItem.value = {
+  itemModel.value = {
     item: JSON.parse(JSON.stringify(obj)) as Item,
     qty: 1,
     instructions: '',
@@ -338,37 +335,37 @@ function openItemDialog(obj: Item) {
 }
 
 function addQty() {
-  if(cartItem.value)
-    cartItem.value.qty += 1
+  if(itemModel.value)
+    itemModel.value.qty += 1
 }
 
 function removeQty() {
-  if(cartItem.value) {
-    if(cartItem.value.qty > 1) {
-      cartItem.value.qty -= 1
+  if(itemModel.value) {
+    if(itemModel.value.qty > 1) {
+      itemModel.value.qty -= 1
     }
   }
 }
 
-const cartItemButtonLabel = computed(() => {
-  if(cartItem.value) {
-    let price = cartItem.value.item.price;
-    cartItem.value.item.item_addon_categories?.forEach((itemAddonCategory) => {
+const itemModelButtonLabel = computed(() => {
+  if(itemModel.value) {
+    let price = itemModel.value.item.price;
+    itemModel.value.item.item_addon_categories?.forEach((itemAddonCategory) => {
       if(itemAddonCategory.type == 'single' && itemAddonCategory.selected_addon_id) {
         const selectedAddon = itemAddonCategory.item_addons.find((addon) => addon.id == itemAddonCategory.selected_addon_id)
         price += selectedAddon?.price || 0
       }
     })
-    const total = price * cartItem.value.qty
+    const total = price * itemModel.value.qty
     return 'Add to Basket | AED '+(total).toFixed(2)
   }
   return ''
 })
 
 function addItem() {
-  if(cartItem.value) {
+  if(itemModel.value) {
     let flag = true
-    cartItem.value.item.item_addon_categories?.every((cat,i) => {
+    itemModel.value.item.item_addon_categories?.every((cat,i) => {
       if(cat.type == 'single') {
         if(!cat.selected_addon_id) {
           const catRef = cartCatRefs.value[i] as QItem
@@ -398,22 +395,14 @@ function addItem() {
       let addNew = true
       let updateIndex: number|null = null
       cartStore.items.every((cItem,index) => {
-        if(cItem.item.id == cartItem.value?.item.id) {
-          if(cItem.instructions == cartItem.value.instructions) {
+        if(cItem.id == itemModel.value?.item.id) {
+          if(cItem.instructions == itemModel.value.instructions) {
             const selectedAddons1:number[] = []
-            cItem.item.item_addon_categories?.every((addonCat) => {
-              if(addonCat.type == 'single') {
-                selectedAddons1.push(addonCat.selected_addon_id)
-              } else {
-                if(addonCat.selected_addon_ids) {
-                  addonCat.selected_addon_ids.forEach(id => {
-                    selectedAddons1.push(id)
-                  })
-                }
-              }
+            cItem.addons.forEach((addon) => {
+              selectedAddons1.push(addon.id)
             })
             const selectedAddons2:number[] = []
-            cartItem.value.item.item_addon_categories?.every((addonCat) => {
+            itemModel.value.item.item_addon_categories?.every((addonCat) => {
               if(addonCat.type == 'single') {
                 selectedAddons2.push(addonCat.selected_addon_id)
               } else {
@@ -434,20 +423,55 @@ function addItem() {
         return true
       })
       if(addNew) {
-        cartStore.addItem(cartItem.value)
+        const obj:CartItem = {
+          id: itemModel.value.item.id,
+          name: itemModel.value.item.name,
+          qty: itemModel.value.qty,
+          instructions: itemModel.value.instructions,
+          price: itemModel.value.item.price,
+          addons: []
+        }
+        const addons: CartItemAddon[] = []
+        itemModel.value.item.item_addon_categories?.forEach(addonCat => {
+          if(addonCat.type == 'single') {
+            addonCat.item_addons.every((a) => {
+              if(a.id == addonCat.selected_addon_id) {
+                addons.push({
+                  id: a.id,
+                  name: a.name,
+                  price: a.price
+                })
+                return false
+              }
+              return true
+            })
+          } else {
+            addonCat.item_addons.forEach((a) => {
+              if(addonCat.selected_addon_ids.includes(a.id)) {
+                addons.push({
+                  id: a.id,
+                  name: a.name,
+                  price: a.price
+                })
+              }
+            })
+          }
+        })
+        obj.addons = addons;
+        cartStore.addItem(obj)
       } else {
         if(updateIndex !== null)
-          cartStore.items[updateIndex].qty += cartItem.value.qty
+          cartStore.items[updateIndex].qty += itemModel.value.qty
       }
-      cartItem.value = null
+      itemModel.value = null
       itemDialog.value = false
     }
   }
 }
 
-const cartItems = computed(() => cartStore.items)
+const itemModels = computed(() => cartStore.items)
 const totalBlockClass =ref('')
-watch(cartItems.value,(newV) => {
+watch(itemModels.value,(newV) => {
   if(newV.length > 0) {
     totalBlockClass.value = 'show'
   } else {

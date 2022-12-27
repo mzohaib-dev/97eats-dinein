@@ -21,6 +21,8 @@ import {CartItem} from 'src/models/Cart';
 import {useRoute} from 'vue-router';
 import {useCartStore} from 'stores/cart';
 import {useAppStore} from 'stores/app';
+import {TableMenu} from 'src/models/Table';
+import {api} from 'boot/axios';
 const $route = useRoute();
 const cartStore = useCartStore();
 const appStore = useAppStore();
@@ -28,27 +30,30 @@ onMounted(() => {
   const uuid = $route.params.table_uuid as string
   cartStore.table_uuid = uuid
   const tableUuidLocal = LocalStorage.getItem('tableUuid')
-  if(uuid == tableUuidLocal) {
-    const cartItems = LocalStorage.getItem('cartItems')
-    if (cartItems) {
-      cartStore.items = cartItems as CartItem[]
-    } else {
-      cartStore.resetCart()
-      return
+  if(tableUuidLocal) {
+    if (uuid == tableUuidLocal) {
+      const cartItems = LocalStorage.getItem('cartItems')
+      if (cartItems) {
+        cartStore.items = cartItems as CartItem[]
+      } else {
+        cartStore.resetCart()
+        return
+      }
+      const instructions = LocalStorage.getItem('instructions')
+      if (instructions) {
+        cartStore.instruction = instructions as string
+      }
+      const tableNumber = LocalStorage.getItem('tableNumber') as string
+      if (tableNumber) {
+        cartStore.table_number = tableNumber
+      } else {
+        cartStore.resetCart()
+        return
+      }
     }
-    const instructions = LocalStorage.getItem('instructions')
-    if (instructions) {
-      cartStore.instruction = instructions as string
-    }
-    const tableNumber = LocalStorage.getItem('tableNumber') as string
-    if(tableNumber){
-      cartStore.table_number = tableNumber
-    } else {
-      cartStore.resetCart()
-      return
-    }
+  } else {
+    LocalStorage.set('tableUuid',uuid)
+    cartStore.table_uuid = uuid as string
   }
-
-
 })
 </script>

@@ -12,6 +12,14 @@ export interface Cart{
 
 export interface CartItem {
   qty: number;
-  item: Item,
+  id: number;
+  name: string;
+  price: number;
+  addons: CartItemAddon[]
   instructions: string;
 }
+ export interface CartItemAddon {
+   id: number;
+   name: string;
+   price: number;
+ }

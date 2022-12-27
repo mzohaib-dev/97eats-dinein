@@ -5,7 +5,8 @@ import {api} from 'boot/axios';
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    user: null as User | null
+    user: null as User | null,
+    order: null as {id: number} | null
   }),
 
   getters: {
@@ -14,6 +15,10 @@ export const useAppStore = defineStore('app', {
 
   actions: {
     async init() {
+      const orderId = LocalStorage.getItem('orderId')
+      if(orderId){
+        this.order = {id: parseInt(orderId as string)}
+      }
       return new Promise<string>((resolve) => {
         const token = LocalStorage.getItem('token')
         if (token) {

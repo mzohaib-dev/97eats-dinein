@@ -12,9 +12,9 @@
         <q-card-section>
           <div class="row q-mb-md" v-for="(cartItem,i) in cartStore.items" :key="i">
             <div class="col-8">
-              <div class="text-bold"><span v-if="cartItem.qty > 1">{{cartItem.qty}} x </span>{{cartItem.item.name}}</div>
+              <div class="text-bold"><span v-if="cartItem.qty > 1">{{cartItem.qty}} x </span>{{cartItem.name}}</div>
               <div class="text-caption text-grey-8">
-                {{getAddons(cartItem.item)}}
+                {{getAddons(cartItem)}}
               </div>
               <div class="text-subtitle2 text-grey-8">{{ getCartItemTotal(cartItem) }}</div>
               <div class="text-caption text-grey-7" v-if="cartItem.instructions">{{cartItem.instructions}}</div>
@@ -22,7 +22,7 @@
             <div class="col-4 text-right">
               <q-btn unelevated size="xs" round icon="remove" color="grey-3" text-color="grey-8" @click="removeQty(cartItem,i)"></q-btn>
               <span class="q-mx-md">{{cartItem.qty}}</span>
-              <q-btn unelevated size="xs" round icon="add" color="grey-3" text-color="grey-8" @click="addQty(cartItem,i)"></q-btn>
+              <q-btn unelevated size="xs" round icon="add" color="grey-3" text-color="grey-8" @click="addQty(cartItem)"></q-btn>
             </div>
           </div>
         </q-card-section>
@@ -33,16 +33,17 @@
               Order Total
             </div>
             <div class="col text-right">
-              AED {{cartStore.cartTotal}}
+              AED {{cartStore.cartTotal.toFixed(2)}}
             </div>
           </div>
         </q-card-section>
       </q-card>
       <q-card flat class="q-mt-md">
         <q-card-section>
-          <div class="card-frame">
+          <div class="card-frame" style="height: 50px; border: 1px solid #aaa; border-radius: 10px;">
             <!-- form will be added here -->
           </div>
+          <div v-if="cardError" class="text-caption text-red-7">{{cardError}}</div>
         </q-card-section>
         <q-card-actions>
           <q-btn label="Pay Now" @click="payNow" color="black" class="full-width"></q-btn>
@@ -66,11 +67,12 @@
 <script lang="ts" setup>
 import {useRoute, useRouter} from 'vue-router';
 import {useCartStore} from 'stores/cart';
-import {Item} from 'src/models/Item';
 import {CartItem} from 'src/models/Cart';
 import {nextTick, onMounted, ref} from 'vue';
 import {useAppStore} from 'stores/app';
-import {LocalStorage} from 'quasar';
+import {Loading, LocalStorage, Notify} from 'quasar';
+import {Frames, PaymentRequestResponse} from 'src/models/Checkout';
+import {api} from 'boot/axios';
 
 const $route = useRoute()
 const $router = useRouter()
@@ -81,42 +83,18 @@ async function goBack() {
 }
 const cartStore = useCartStore()
 
-function getAddons(item:Item):string {
+function getAddons(item:CartItem):string {
   let addonNames:string[] = []
-  item.item_addon_categories?.forEach((addonCat) => {
-    if(addonCat.type == 'single') {
-      if(addonCat.selected_addon_id) {
-        addonNames.push(addonCat.item_addons.find((addon) => addon.id === addonCat.selected_addon_id)?.name || '')
-      }
-    } else {
-      if(addonCat.selected_addon_ids.length > 0) {
-        addonCat.item_addons.forEach((addon) => {
-          if(addonCat.selected_addon_ids.includes(addon.id)) {
-            addonNames.push(addon.name)
-          }
-        })
-      }
-    }
+  item.addons.forEach((addon) => {
+    addonNames.push(addon.name)
   })
   return addonNames.join(',')
 }
 
 function getCartItemTotal(cartItem:CartItem):string {
-  let total = cartItem.item.price
-  cartItem.item.item_addon_categories?.forEach((addonCat) => {
-    if(addonCat.type == 'single') {
-      if(addonCat.selected_addon_id) {
-        total += addonCat.item_addons.find((addon) => addon.id === addonCat.selected_addon_id)?.price || 0
-      }
-    } else {
-      if(addonCat.selected_addon_ids.length > 0) {
-        addonCat.item_addons.forEach((addon) => {
-          if(addonCat.selected_addon_ids.includes(addon.id)) {
-            total += addon.price
-          }
-        })
-      }
-    }
+  let total = cartItem.price
+  cartItem.addons.forEach(addon => {
+    total += addon.price
   })
   return 'AED ' + (total * cartItem.qty).toFixed(2)
 }
@@ -134,11 +112,13 @@ function removeQty(cartItem:CartItem,i:number) {
   })
   LocalStorage.set('cartItems',cartStore.items)
 }
-function addQty(cartItem:CartItem,i:number) {
+function addQty(cartItem:CartItem) {
   cartItem.qty += 1
   LocalStorage.set('cartItems',cartStore.items)
 }
 const appStore = useAppStore()
+
+const frames = window.Frames as Frames
 onMounted(async () => {
   try {
     const res = await appStore.init()
@@ -154,17 +134,57 @@ onMounted(async () => {
   } catch (e) {
     console.log(e)
   }
-  window.Frames.init('pk_sbox_4gpm6juoifix5xw2r46jmyxj2e4')
+  frames.init(process.env.CHECKOUT_PUBLIC_API_KEY)
 })
 
+const cardError = ref('')
+
 async function payNow() {
-  if(window.Frames.isCardValid()) {
+  cardError.value = ''
+  if(frames.isCardValid()) {
+    Loading.show()
     try {
-      const res = await window.Frames.submitCard()
-      console.log(res)
+      const res = await frames.submitCard()
+      if(res.token) {
+        const token = res.token
+        try {
+          const payRes:{data:PaymentRequestResponse} = await api.post('dine-in/checkout/request-payment', {
+            type: 'CARD',
+            token: token,
+            basket: cartStore.$state,
+          })
+          if(payRes.data.status == 'Pending') {
+            appStore.order = { id: payRes.data.order_details.order_id }
+            LocalStorage.set('orderId',appStore.order.id)
+            window.location.href = payRes.data._links.redirect.href
+          } else if(payRes.data.status == 'Authorized') {
+            await $router.push({
+              name:'PaymentSuccess',
+              params: {store_id: store_id, table_uuid: uuid}
+            })
+          } else {
+            await $router.push({
+              name:'PaymentFailure',
+              params: {store_id: store_id, table_uuid: uuid}
+            })
+          }
+        } catch (e) {
+          Notify.create({
+            message:'Payment Error. Try Again',
+            type:'negative'
+          })
+          frames.enableSubmitForm()
+        }
+      }
     } catch (e) {
       console.log(e)
     }
+    Loading.hide()
+  } else {
+    cardError.value = 'Please enter a valid card number'
   }
 }
 </script>
+<style scoped>
+
+</style>

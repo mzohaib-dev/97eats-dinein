@@ -11,29 +11,16 @@ export const useCartStore = defineStore('cart', {
   }),
 
   getters: {
-    cartTotal():string {
+    cartTotal():number {
       let total = 0
       this.items.forEach((cartItem) => {
-        let price = cartItem.item.price;
-        cartItem.item.item_addon_categories?.forEach((itemAddonCategory) => {
-          if(itemAddonCategory.type == 'single') {
-            if(itemAddonCategory.selected_addon_id) {
-              const selectedAddon = itemAddonCategory.item_addons.find((addon) => addon.id == itemAddonCategory.selected_addon_id)
-              price += selectedAddon?.price || 0
-            }
-          } else {
-            if(itemAddonCategory.selected_addon_ids.length > 0) {
-              itemAddonCategory.item_addons.forEach((addon) => {
-                if(itemAddonCategory.selected_addon_ids.includes(addon.id)) {
-                  price += addon.price
-                }
-              })
-            }
-          }
+        let price = cartItem.price;
+        cartItem.addons.forEach((addon) => {
+          price += addon.price
         })
         total += price * cartItem.qty
       })
-      return total.toFixed(2)
+      return total
     }
   },
 
@@ -46,8 +33,6 @@ export const useCartStore = defineStore('cart', {
       this.items.splice(index,1)
     },
     resetCart() {
-      this.table_uuid = ''
-      this.table_number = ''
       this.items = []
       this.instruction = ''
     }

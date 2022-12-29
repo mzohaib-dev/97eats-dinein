@@ -15,6 +15,13 @@
 </q-card>
 <div class="" style="position: -webkit-sticky; position:sticky; top:0; z-index:10" ref="headerRef">
   <q-card flat bordered>
+    <q-card-section class="flex justify-between q-py-none">
+      <q-btn no-caps label="My Orders" dense color="grey-8" flat v-if="appStore.user" :to="{name:'Orders',params: {store_id: store_id, table_uuid: uuid}}"></q-btn>
+      <q-space></q-space>
+      <q-btn v-if="appStore.user" no-caps label="Logout" dense color="red-7" flat @click="logoutFn"></q-btn>
+      <q-btn v-else no-caps label="Login" dense color="red-7" flat :to="{name:'Login',params: {store_id: store_id, table_uuid: uuid}}"></q-btn>
+    </q-card-section>
+    <q-separator/>
     <q-card-section class="flex justify-between items-center">
       <q-avatar class="shadow-3">
         <q-img placeholder-src="~assets/g.jpg" :src="model ? model.store.thumbnail : ''" ></q-img>
@@ -81,7 +88,9 @@
         </q-card-section>
       </q-card>
     </template>
-    <div class="window-height"></div>
+    <div class="window-height flex justify-center items-center">
+      <q-img src="~assets/logo_small.png" width="200px"/>
+    </div>
   </q-card-section>
 </q-card>
 <div class="fixed-bottom full-width total-block show" v-show="cartStore.items.length > 0">
@@ -215,7 +224,19 @@
 </q-dialog>
 </template>
 <script lang="ts" setup>
-import {QCard, QCardSection, QImg, QAvatar, QSeparator, QBtn, QItem, LocalStorage, Loading} from 'quasar';
+import {
+  QCard,
+  QCardSection,
+  QImg,
+  QAvatar,
+  QSeparator,
+  QBtn,
+  QItem,
+  LocalStorage,
+  Loading,
+  Dialog,
+  Notify
+} from 'quasar';
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {api} from 'boot/axios';
@@ -246,35 +267,36 @@ onMounted(async () => {
   } catch(e) {
     await $router.push('/')
   }
-  const headerHeight = headerRef.value?.getBoundingClientRect().height as number +20
-  const rootMargin = '-'+headerHeight+'px 0px -' + (window.innerHeight - headerHeight) + 'px' + ' 0px'
-  observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const id = entry.target.getAttribute('data-id')
-      if (entry.isIntersecting) {
-        active.value = parseInt(id as string)
-      }
+  await nextTick(async () => {
+    const rootMargin = '-183px 0px -' + (window.innerHeight - 183) + 'px' + ' 0px'
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const id = entry.target.getAttribute('data-id')
+        if (entry.isIntersecting) {
+          active.value = parseInt(id as string)
+        }
+      })
+    }, {
+      root: null,
+      rootMargin: rootMargin,
+      threshold: 0
     })
-  }, {
-    root: null,
-    rootMargin: rootMargin,
-    threshold: 0
-  })
-  await nextTick(() => {
-    refElements.value.forEach((item: QCard) => {
-      observer?.observe(item.$el)
+    await nextTick(() => {
+      refElements.value.forEach((item: QCard) => {
+        observer?.observe(item.$el)
+      })
     })
   })
 
   window.addEventListener('resize', function () {
     refElements.value.forEach((item: QCard) => {
       observer?.unobserve(item.$el)
-      const rootMargin = '-'+headerHeight+'px 0px -' + (window.innerHeight - headerHeight) + 'px' + ' 0px'
+      const headerHeight = headerRef.value?.getBoundingClientRect().height as number+20
+      const rootMargin = '-163px 0px -' + (window.innerHeight - 163) + 'px' + ' 0px'
       observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           const id = entry.target.getAttribute('data-id')
           if (entry.isIntersecting) {
-            console.log('yes')
             active.value = parseInt(id as string)
           }
         })
@@ -288,8 +310,11 @@ onMounted(async () => {
       })
     })
   })
+
   Loading.hide()
 })
+
+
 
 function onUpdateTab(val: number) {
   const card = refElements.value[val] as QCard
@@ -488,6 +513,40 @@ async function gotoBasket() {
       store_id: store_id,
       table_uuid: uuid
     }
+  })
+}
+
+function logoutFn() {
+  Dialog.create({
+    title: 'Confirm',
+    message:'Do you want to logout?',
+    ok: {
+      label: 'Yes',
+      flat: true,
+      color: 'red-8'
+    },
+    cancel: {
+      label: 'No',
+      color: 'green',
+      unelevated: true,
+      flat: false
+    }
+  }).onOk(async () => {
+    try {
+      const res: { data: { message: string } } = await api.post('dine-in/logout')
+      if(res.data.message === 'success' ) {
+        Notify.create({
+          message: 'You have logged out successfully',
+          type: 'info'
+        })
+        delete api.defaults.headers['Authorization']
+        LocalStorage.remove('token')
+        appStore.user = null
+      }
+    } catch (e) {
+      console.log(e)
+    }
+
   })
 }
 </script>

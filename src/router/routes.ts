@@ -35,6 +35,11 @@ const routes: RouteRecordRaw[] = [
         path:'store/:store_id/:table_uuid/payment/failure',
         component:() => import('pages/PaymentFailure.vue'),
         name: 'PaymentFailure',
+      },
+      {
+        path:'store/:store_id/:table_uuid/orders',
+        component:() => import('pages/OrdersPage.vue'),
+        name: 'Orders',
       }
     ],
   },

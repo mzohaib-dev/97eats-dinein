@@ -36,6 +36,7 @@ import {Loading, LocalStorage, Notify} from 'quasar';
 import {User} from 'src/models/User';
 import {AxiosError} from 'axios';
 import {useAppStore} from 'stores/app';
+import {useCartStore} from 'stores/cart';
 const $route = useRoute()
 const $router = useRouter()
 const phone = $route.query.phone as string
@@ -77,14 +78,15 @@ async function handleOnComplete(val:string) {
         otp: val
       })
       appStore.user = res.data.user
+      api.defaults.headers['Authorization'] = res.data.token
       LocalStorage.set('token',res.data.token)
-      await $router.push({
-        name:'Basket',
-        params: {
-          store_id: store_id,
-          table_uuid: uuid
-        }
-      })
+        await $router.push({
+          name: useCartStore().items.length > 0 ? 'Basket' : 'Menu',
+          params: {
+            store_id: store_id,
+            table_uuid: uuid
+          }
+        })
     } catch (e) {
       const error = e as AxiosError
       otpInput.value?.clearInput()

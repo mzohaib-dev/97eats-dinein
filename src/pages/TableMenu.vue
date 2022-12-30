@@ -380,9 +380,9 @@ import {
   QBtn,
   QItem,
   LocalStorage,
-  Loading,
   Dialog,
   Notify,
+  useQuasar,
 } from 'quasar';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -404,8 +404,10 @@ const $route = useRoute();
 const $router = useRouter();
 const store_id = parseInt($route.params.store_id as string);
 const uuid = $route.params.table_uuid as string;
+const $q = useQuasar();
 onMounted(async () => {
-  Loading.show();
+  $q.loading.show();
+
   await appStore.init();
   try {
     const response: { data: TableMenu } = await api.get(
@@ -469,7 +471,7 @@ onMounted(async () => {
     });
   });
 
-  Loading.hide();
+  $q.loading.hide();
 });
 
 function onUpdateTab(val: number) {

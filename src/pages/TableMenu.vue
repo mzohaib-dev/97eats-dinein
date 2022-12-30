@@ -104,7 +104,7 @@
       <template v-for="(cat, i) in model.item_categories" :key="i">
         <q-card style="z-index: 8" flat :data-id="i" ref="refElements">
           <q-card-section>
-            <div class="text-subtitle2">{{ cat.name }}</div>
+            <div class="text-subtitle1 text-bold">{{ cat.name }}</div>
           </q-card-section>
           <q-separator spaced />
           <q-card-section class="q-pa-none">
@@ -215,6 +215,7 @@
               color="white"
               text-color="black"
               round
+              flat
               icon="close"
               size="sm"
               class="absolute-top-right q-mt-sm q-mr-sm"

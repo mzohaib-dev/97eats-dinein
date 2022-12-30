@@ -7,7 +7,6 @@ import {
 } from 'vue-router';
 
 import routes from './routes';
-import {useAppStore} from 'stores/app';
 
 /*
  * If not building with SSR mode, you can
@@ -18,10 +17,12 @@ import {useAppStore} from 'stores/app';
  * with the Router instance.
  */
 
-export default route(function ( /*{store}, ssrContext } */) {
+export default route(function (/*{store}, ssrContext } */) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
-    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory);
+    : process.env.VUE_ROUTER_MODE === 'history'
+    ? createWebHistory
+    : createWebHashHistory;
 
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),

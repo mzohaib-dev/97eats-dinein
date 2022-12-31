@@ -1,186 +1,187 @@
 <template>
-  <q-card>
-    <q-card-section
-      class="q-py-lg flex justify-around"
-      style="background: #fdbe0f"
-    >
-      <div class="col flex justify-center items-center">
-        <a href="https://gireeb.ae/app-stores" target="_blank">
-          <q-img src="~assets/logo_small.png" width="150px"></q-img>
-        </a>
-      </div>
-      <div class="col flex justify-center items-center">
-        <a href="https://gireeb.ae/app-stores" target="_blank">
-          <q-img src="~assets/des.png" width="150px"></q-img>
-        </a>
-      </div>
-    </q-card-section>
-  </q-card>
-  <div
-    class=""
-    style="position: -webkit-sticky; position: sticky; top: 0; z-index: 10"
-    ref="headerRef"
+  <transition
+    appear
+    enter-active-class="animated fadeIn"
+    leave-active-class="animated fadeOut"
   >
-    <q-card flat bordered>
-      <q-card-section class="flex justify-between q-py-none">
-        <q-btn
-          no-caps
-          label="My Orders"
-          dense
-          color="grey-8"
-          flat
-          v-if="appStore.user"
-          :to="{
-            name: 'Orders',
-            params: { store_id: store_id, table_uuid: uuid },
-          }"
-        ></q-btn>
-        <q-space></q-space>
-        <q-btn
-          v-if="appStore.user"
-          no-caps
-          label="Logout"
-          dense
-          color="red-7"
-          flat
-          @click="logoutFn"
-        ></q-btn>
-        <q-btn
-          v-else
-          no-caps
-          label="Login"
-          dense
-          color="red-7"
-          flat
-          :to="{
-            name: 'Login',
-            params: { store_id: store_id, table_uuid: uuid },
-          }"
-        ></q-btn>
-      </q-card-section>
-      <q-separator />
-      <q-card-section class="flex justify-between items-center">
-        <q-avatar class="shadow-3">
-          <q-img
-            placeholder-src="~assets/g.jpg"
-            :src="model ? model.store.thumbnail : ''"
-          ></q-img>
-        </q-avatar>
-        <div class="text-grey-8 text-bold" style="font-size: 1rem">
-          Dine-in | طلبات داخلية
-        </div>
-        <div class="text-grey-7">Table No. {{ tableNumber }}</div>
-      </q-card-section>
-      <q-separator />
-      <q-card-section class="q-pa-none">
-        <div class="row">
-          <div class="col-auto flex items-center justify-center">
-            <q-btn flat icon="menu" @click="openSheet"></q-btn>
+    <div v-show="!loading">
+      <q-card>
+        <q-card-section
+          class="q-py-lg flex justify-around"
+          style="background: #fdbe0f"
+        >
+          <div class="col flex justify-center items-center">
+            <a href="https://gireeb.ae/app-stores" target="_blank">
+              <q-img src="~assets/logo_small.png" width="150px"></q-img>
+            </a>
           </div>
-          <q-separator vertical />
-          <div class="col" v-if="model">
-            <q-tabs
-              :model-value="active"
-              @update:model-value="onUpdateTab"
-              active-bg-color="grey-9"
-              active-color="white"
-              no-caps
-              switch-indicator
-              outside-arrows
-              mobile-arrows
-              narrow-indicator
-            >
-              <template v-for="(cat, i) in model.item_categories" :key="i">
-                <q-tab :name="i" :label="cat.name"></q-tab>
-              </template>
-            </q-tabs>
+          <div class="col flex justify-center items-center">
+            <a href="https://gireeb.ae/app-stores" target="_blank">
+              <q-img src="~assets/des.png" width="150px"></q-img>
+            </a>
           </div>
-        </div>
-      </q-card-section>
-    </q-card>
-  </div>
-  <q-card flat>
-    <q-card-section v-if="model">
-      <template v-for="(cat, i) in model.item_categories" :key="i">
-        <q-card style="z-index: 8" flat :data-id="i" ref="refElements">
-          <q-card-section>
-            <div class="text-subtitle1 text-bold">{{ cat.name }}</div>
+        </q-card-section>
+      </q-card>
+      <div
+        class=""
+        style="position: -webkit-sticky; position: sticky; top: 0; z-index: 10"
+        ref="headerRef"
+      >
+        <q-card flat bordered>
+          <q-card-section
+            class="flex justify-between items-center q-py-xs q-pr-xs"
+          >
+            <q-avatar class="shadow-3" size="sm">
+              <q-img
+                placeholder-src="~assets/g.jpg"
+                :src="model ? model.store.thumbnail : ''"
+              ></q-img>
+            </q-avatar>
+            <div class="text-grey-7 text-caption">
+              Table No. {{ tableNumber }}
+            </div>
+            <template v-if="appStore.user">
+              <q-btn
+                icon="account_circle"
+                size="md"
+                round
+                flat
+                @click="accountDialog = true"
+              ></q-btn>
+            </template>
+            <template v-else>
+              <q-btn
+                icon="account_circle"
+                size="md"
+                round
+                flat
+                :to="{
+                  name: 'Login',
+                  params: { store_id: store_id, table_uuid: uuid },
+                }"
+              ></q-btn>
+            </template>
           </q-card-section>
-          <q-separator spaced />
+          <q-separator />
           <q-card-section class="q-pa-none">
-            <div class="row q-col-gutter-md">
-              <div class="col-6" v-for="(item, j) in cat.items" :key="j">
-                <q-card flat>
-                  <div class="relative-position">
-                    <q-img
-                      :src="item.thumbnail"
-                      class="relative-position"
-                      style="border-radius: 10px"
-                      placeholder-src="~assets/placeholder.png"
-                      :ratio="1"
-                    />
-                    <q-btn
-                      color="black"
-                      round
-                      icon="add"
-                      @click="openItemDialog(item)"
-                      size="sm"
-                      class="absolute-bottom-right q-mb-sm q-mr-sm"
-                    >
-                    </q-btn>
-                  </div>
-                  <q-card-section>
-                    <div class="text">{{ item.name }}</div>
-                    <div class="text text-grey-8" v-if="item.price > 0">
-                      AED {{ item.price.toFixed(2) }}
-                    </div>
-                    <q-chip
-                      color="grey-2"
-                      class="q-ma-none"
-                      text-color="grey-8"
-                      square
-                      v-else
-                      >Price on Selection</q-chip
-                    >
-                  </q-card-section>
-                </q-card>
+            <div class="row">
+              <div class="col-auto flex items-center justify-center">
+                <q-btn flat icon="menu" @click="openSheet"></q-btn>
+              </div>
+              <q-separator vertical />
+              <div class="col" v-if="model">
+                <q-tabs
+                  :model-value="active"
+                  @update:model-value="onUpdateTab"
+                  active-bg-color="yellow-9"
+                  active-color="white"
+                  no-caps
+                  switch-indicator
+                  outside-arrows
+                  mobile-arrows
+                >
+                  <template v-for="(cat, i) in model.item_categories" :key="i">
+                    <q-tab :name="i" :label="cat.name"></q-tab>
+                  </template>
+                </q-tabs>
               </div>
             </div>
           </q-card-section>
         </q-card>
-      </template>
-      <div class="window-height flex justify-center items-center">
-        <q-img src="~assets/logo_small.png" width="200px" />
       </div>
-    </q-card-section>
-  </q-card>
-  <div
-    class="fixed-bottom full-width total-block show"
-    v-show="cartStore.items.length > 0"
-  >
-    <q-card flat>
-      <q-card-section>
-        <div class="row">
-          <div class="col">
-            <div class="text-subtitle1 text-bold">Total</div>
+      <q-card flat>
+        <q-card-section v-if="model">
+          <template v-for="(cat, i) in model.item_categories" :key="i">
+            <q-card style="z-index: 8" flat :data-id="i" ref="refElements">
+              <q-card-section>
+                <div class="text-subtitle1 text-bold">{{ cat.name }}</div>
+              </q-card-section>
+              <q-separator spaced />
+              <q-card-section class="q-pa-none">
+                <div class="row q-col-gutter-md">
+                  <div class="col-6" v-for="(item, j) in cat.items" :key="j">
+                    <q-card flat>
+                      <div class="relative-position">
+                        <q-img
+                          :src="item.thumbnail"
+                          class="relative-position"
+                          style="border-radius: 10px"
+                          placeholder-src="~assets/placeholder.png"
+                          :ratio="1"
+                        />
+                        <q-btn
+                          color="black"
+                          round
+                          icon="add"
+                          @click="openItemDialog(item)"
+                          size="sm"
+                          class="absolute-bottom-right q-mb-sm q-mr-sm"
+                        >
+                        </q-btn>
+                      </div>
+                      <q-card-section>
+                        <div class="text">{{ item.name }}</div>
+                        <div class="text text-grey-8" v-if="item.price > 0">
+                          AED {{ item.price.toFixed(2) }}
+                        </div>
+                        <q-chip
+                          color="grey-2"
+                          class="q-ma-none"
+                          text-color="grey-8"
+                          square
+                          v-else
+                          >Price on Selection</q-chip
+                        >
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </template>
+          <div class="window-height flex justify-center items-center">
+            <q-img src="~assets/logo_small.png" width="200px" />
           </div>
-          <div class="col">
-            <div class="text-subtitle1 text-bold text-right">
-              AED {{ cartStore.cartTotal.toFixed(2) }}
+        </q-card-section>
+      </q-card>
+      <div
+        class="fixed-bottom full-width total-block show"
+        v-show="cartStore.items.length > 0"
+      >
+        <q-card flat>
+          <div class="bg-yellow-9" style="height: 3px"></div>
+          <q-card-section>
+            <div class="row">
+              <div class="col">
+                <div class="text-subtitle1 text-bold">Total</div>
+              </div>
+              <div class="col">
+                <div class="text-subtitle1 text-bold text-right">
+                  AED {{ cartStore.cartTotal.toFixed(2) }}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </q-card-section>
-      <q-card-actions>
-        <q-btn
-          color="black"
-          class="full-width"
-          label="Basket"
-          @click="gotoBasket"
-        ></q-btn>
-      </q-card-actions>
-    </q-card>
-  </div>
+          </q-card-section>
+          <q-card-actions>
+            <q-btn
+              color="yellow-9"
+              text-color="white"
+              class="full-width"
+              label="Basket"
+              @click="gotoBasket"
+            ></q-btn>
+          </q-card-actions>
+        </q-card>
+      </div>
+    </div>
+  </transition>
+  <q-inner-loading
+    :showing="loading"
+    class=""
+    style="position: fixed !important"
+  >
+    <q-spinner-gears size="50px" color="primary" />
+  </q-inner-loading>
   <q-dialog v-model="menuDialog" position="bottom">
     <q-card style="width: 500px; max-width: 100%" class="rounded-borders">
       <q-card-section class="flex justify-between items-center">
@@ -369,6 +370,39 @@
       </template>
     </div>
   </q-dialog>
+  <q-dialog v-model="accountDialog" position="bottom">
+    <div class="bg-grey-3">
+      <q-card style="width: 500px; max-width: 100%" flat>
+        <q-card-section>
+          <q-list>
+            <q-item
+              clickable
+              :to="{
+                name: 'Orders',
+                params: { store_id: store_id, table_uuid: uuid },
+              }"
+              class="text-grey-8"
+            >
+              <q-item-section avatar>
+                <q-icon name="list_alt"></q-icon>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label> My Orders </q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item clickable @click="logoutFn" class="text-red-7">
+              <q-item-section avatar>
+                <q-icon name="logout"></q-icon>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label> Logout </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+      </q-card>
+    </div>
+  </q-dialog>
 </template>
 <script lang="ts" setup>
 import {
@@ -404,10 +438,9 @@ const $route = useRoute();
 const $router = useRouter();
 const store_id = parseInt($route.params.store_id as string);
 const uuid = $route.params.table_uuid as string;
-const $q = useQuasar();
+const accountDialog = ref(false);
+const loading = ref(true);
 onMounted(async () => {
-  $q.loading.show();
-
   await appStore.init();
   try {
     const response: { data: TableMenu } = await api.get(
@@ -418,9 +451,10 @@ onMounted(async () => {
   } catch (e) {
     await $router.push('/');
   }
+  loading.value = false;
   await nextTick(async () => {
     const rootMargin =
-      '-183px 0px -' + (window.innerHeight - 183) + 'px' + ' 0px';
+      '-121px 0px -' + (window.innerHeight - 121) + 'px' + ' 0px';
     observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -446,10 +480,8 @@ onMounted(async () => {
   window.addEventListener('resize', function () {
     refElements.value.forEach((item: QCard) => {
       observer?.unobserve(item.$el);
-      const headerHeight =
-        (headerRef.value?.getBoundingClientRect().height as number) + 20;
       const rootMargin =
-        '-183px 0px -' + (window.innerHeight - 183) + 'px' + ' 0px';
+        '-121px 0px -' + (window.innerHeight - 121) + 'px' + ' 0px';
       observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -470,8 +502,6 @@ onMounted(async () => {
       });
     });
   });
-
-  $q.loading.hide();
 });
 
 function onUpdateTab(val: number) {
@@ -704,6 +734,7 @@ function logoutFn() {
         'dine-in/logout'
       );
       if (res.data.message === 'success') {
+        accountDialog.value = false;
         Notify.create({
           message: 'You have logged out successfully',
           type: 'info',

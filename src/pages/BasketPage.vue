@@ -1,101 +1,122 @@
 <template>
-  <q-card flat class="full-height bg-grey-3">
-    <q-card-section>
-      <q-btn
-        class="q-mt-md"
-        icon="arrow_back"
-        outline
-        round
-        @click="goBack"
-        color="grey-7"
-      ></q-btn>
-    </q-card-section>
-    <q-card-section>
-      <q-card flat>
+  <transition
+    appear
+    enter-active-class="animated fadeIn"
+    leave-active-class="animated fadeOut"
+  >
+    <div v-show="!loading">
+      <q-card flat class="full-height bg-grey-3">
         <q-card-section>
-          <div class="text-subtitle1">Table: {{ cartStore.table_number }}</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <div
-            class="row q-mb-md"
-            v-for="(cartItem, i) in cartStore.items"
-            :key="i"
-          >
-            <div class="col-8">
-              <div class="text-bold">
-                <span v-if="cartItem.qty > 1">{{ cartItem.qty }} x </span
-                >{{ cartItem.name }}
-              </div>
-              <div class="text-caption text-grey-8">
-                {{ getAddons(cartItem) }}
-              </div>
-              <div class="text-subtitle2 text-grey-8">
-                {{ getCartItemTotal(cartItem) }}
-              </div>
-              <div
-                class="text-caption text-grey-7"
-                v-if="cartItem.instructions"
-              >
-                {{ cartItem.instructions }}
-              </div>
-            </div>
-            <div class="col-4 text-right">
-              <q-btn
-                unelevated
-                size="xs"
-                round
-                icon="remove"
-                color="grey-3"
-                text-color="grey-8"
-                @click="removeQty(cartItem, i)"
-              ></q-btn>
-              <span class="q-mx-md">{{ cartItem.qty }}</span>
-              <q-btn
-                unelevated
-                size="xs"
-                round
-                icon="add"
-                color="grey-3"
-                text-color="grey-8"
-                @click="addQty(cartItem)"
-              ></q-btn>
-            </div>
-          </div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <div class="row">
-            <div class="col text-bold">Order Total</div>
-            <div class="col text-right">
-              AED {{ cartStore.cartTotal.toFixed(2) }}
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-      <q-card flat class="q-mt-md">
-        <q-card-section>
-          <div
-            class="card-frame"
-            style="height: 50px; border: 1px solid #aaa; border-radius: 10px"
-          >
-            <!-- form will be added here -->
-          </div>
-          <div v-if="cardError" class="text-caption text-red-7">
-            {{ cardError }}
-          </div>
-        </q-card-section>
-        <q-card-actions>
           <q-btn
-            label="Pay Now"
-            @click="payNow"
-            color="black"
-            class="full-width"
+            class="q-mt-md"
+            icon="arrow_back"
+            outline
+            round
+            @click="goBack"
+            color="grey-7"
           ></q-btn>
-        </q-card-actions>
+        </q-card-section>
+        <q-card-section>
+          <q-card flat>
+            <q-card-section>
+              <div class="text-subtitle1">
+                Table: {{ cartStore.table_number }}
+              </div>
+            </q-card-section>
+            <q-separator />
+            <q-card-section>
+              <div
+                class="row q-mb-md"
+                v-for="(cartItem, i) in cartStore.items"
+                :key="i"
+              >
+                <div class="col-8">
+                  <div class="text-bold">
+                    <span v-if="cartItem.qty > 1">{{ cartItem.qty }} x </span
+                    >{{ cartItem.name }}
+                  </div>
+                  <div class="text-caption text-grey-8">
+                    {{ getAddons(cartItem) }}
+                  </div>
+                  <div class="text-subtitle2 text-grey-8">
+                    {{ getCartItemTotal(cartItem) }}
+                  </div>
+                  <div
+                    class="text-caption text-grey-7"
+                    v-if="cartItem.instructions"
+                  >
+                    {{ cartItem.instructions }}
+                  </div>
+                </div>
+                <div class="col-4 text-right">
+                  <q-btn
+                    unelevated
+                    size="xs"
+                    round
+                    icon="remove"
+                    color="grey-3"
+                    text-color="grey-8"
+                    @click="removeQty(cartItem, i)"
+                  ></q-btn>
+                  <span class="q-mx-md">{{ cartItem.qty }}</span>
+                  <q-btn
+                    unelevated
+                    size="xs"
+                    round
+                    icon="add"
+                    color="grey-3"
+                    text-color="grey-8"
+                    @click="addQty(cartItem)"
+                  ></q-btn>
+                </div>
+              </div>
+            </q-card-section>
+            <q-separator />
+            <q-card-section>
+              <div class="row">
+                <div class="col text-bold">Order Total</div>
+                <div class="col text-right">
+                  AED {{ cartStore.cartTotal.toFixed(2) }}
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+          <q-card flat class="q-mt-md">
+            <q-card-section>
+              <div
+                class="card-frame"
+                style="
+                  height: 50px;
+                  border: 1px solid #aaa;
+                  border-radius: 10px;
+                "
+              >
+                <!-- form will be added here -->
+              </div>
+              <div v-if="cardError" class="text-caption text-red-7">
+                {{ cardError }}
+              </div>
+            </q-card-section>
+            <q-card-actions>
+              <q-btn
+                label="Pay Now"
+                @click="payNow"
+                color="black"
+                class="full-width"
+              ></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-card-section>
       </q-card>
-    </q-card-section>
-  </q-card>
+    </div>
+  </transition>
+  <q-inner-loading
+    :showing="loading"
+    class=""
+    style="position: fixed !important"
+  >
+    <q-spinner-gears size="50px" color="primary" />
+  </q-inner-loading>
   <q-dialog full-width v-model="basketEmptyDialog" persistent>
     <q-card>
       <q-card-section>Notice</q-card-section>
@@ -128,6 +149,7 @@ const $route = useRoute();
 const $router = useRouter();
 const store_id = parseInt($route.params.store_id as string);
 const uuid = $route.params.table_uuid as string;
+const loading = ref(true);
 async function goBack() {
   await $router.push({
     name: 'Menu',
@@ -187,10 +209,11 @@ onMounted(async () => {
   } catch (e) {
     console.log(e);
   }
-  frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
+  await frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
   if (window.ApplePaySession) {
     supportApplePay.value = true;
   }
+  loading.value = false;
 });
 
 const cardError = ref('');

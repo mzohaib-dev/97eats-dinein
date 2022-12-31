@@ -1,60 +1,77 @@
 <template>
-  <q-card flat class="bg-transparent">
-    <q-card-section class="flex items-center q-mt-md">
-      <q-btn
-        icon="arrow_back"
-        outline
-        round
-        @click="goBack"
-        color="grey-7"
-      ></q-btn>
-      <div class="text-subtitle1 text-bold q-ml-lg">My Orders</div>
-    </q-card-section>
-    <q-card-section>
-      <template v-if="model.length > 0">
-        <q-card
-          class="bg-white q-mb-md"
-          v-for="order in model"
-          :key="order.id"
-          @click="getOrder(order.id)"
-        >
-          <q-card-section>
-            <div class="text-subtitle2">{{ order.serial_no }}</div>
-            <div class="text-caption">
-              <q-chip
-                :label="
-                  order.status === 'ACCEPTED' ? 'Preparing Order' : 'Complete'
-                "
-                color="green-9"
-                outline
-                size="sm"
-                square
-              ></q-chip>
-            </div>
-          </q-card-section>
-          <q-separator />
-          <q-card-section>
-            <div class="text-grey-8 text-subtitle2">
-              {{ order.store_name }} | Table: {{ order.table_number }}
-            </div>
-          </q-card-section>
-        </q-card>
-      </template>
-      <template v-else>
-        <q-card class="bg-white">
-          <q-card-section class="text-center text-h6 text-grey-7">
-            !! No orders !!
-          </q-card-section>
-        </q-card>
-      </template>
-    </q-card-section>
-  </q-card>
+  <transition
+    appear
+    enter-active-class="animated fadeIn"
+    leave-active-class="animated fadeOut"
+  >
+    <div v-show="!loading">
+      <q-card flat class="bg-transparent">
+        <q-card-section class="flex items-center q-mt-md">
+          <q-btn
+            icon="arrow_back"
+            outline
+            round
+            @click="goBack"
+            color="grey-7"
+          ></q-btn>
+          <div class="text-subtitle1 text-bold q-ml-lg">My Orders</div>
+        </q-card-section>
+        <q-card-section>
+          <template v-if="model.length > 0">
+            <q-card
+              class="bg-white q-mb-md"
+              v-for="order in model"
+              :key="order.id"
+              @click="getOrder(order.id)"
+            >
+              <q-card-section>
+                <div class="text-subtitle2">{{ order.serial_no }}</div>
+                <div class="text-caption">
+                  <q-chip
+                    :label="
+                      order.status === 'ACCEPTED'
+                        ? 'Preparing Order'
+                        : 'Complete'
+                    "
+                    color="green-9"
+                    outline
+                    size="sm"
+                    square
+                  ></q-chip>
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section>
+                <div class="text-grey-8 text-subtitle2">
+                  {{ order.store_name }} | Table: {{ order.table_number }}
+                </div>
+              </q-card-section>
+            </q-card>
+          </template>
+          <template v-else>
+            <q-card class="bg-white">
+              <q-card-section class="text-center text-h6 text-grey-7">
+                !! No orders !!
+              </q-card-section>
+            </q-card>
+          </template>
+        </q-card-section>
+      </q-card>
+    </div>
+  </transition>
+  <q-inner-loading
+    :showing="loading"
+    class=""
+    style="position: fixed !important"
+  >
+    <q-spinner-gears size="50px" color="primary" />
+  </q-inner-loading>
 </template>
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { api } from 'boot/axios';
-import { Loading, QBtn, QCard, QCardSection } from 'quasar';
+import { QBtn, QCard, QCardSection } from 'quasar';
 import { useAppStore } from 'stores/app';
 import { Order } from 'src/models/Order';
 const appStore = useAppStore();
@@ -63,8 +80,8 @@ const $router = useRouter();
 const store_id = parseInt($route.params.store_id as string);
 const uuid = $route.params.table_uuid as string;
 const model = ref<Order[]>([]);
+const loading = ref(true);
 onMounted(async () => {
-  Loading.show();
   try {
     const res = await appStore.init();
     if (res === 'unauthenticated') {
@@ -86,7 +103,7 @@ onMounted(async () => {
   } catch (e) {
     console.log(e);
   }
-  Loading.hide();
+  loading.value = false;
 });
 async function goBack() {
   await $router.push({

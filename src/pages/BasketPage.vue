@@ -10,10 +10,12 @@
           <q-btn
             class="q-mt-md"
             icon="arrow_back"
-            outline
+            size="sm"
             round
+            unelevated
+            text-color="grey-8"
+            color="white"
             @click="goBack"
-            color="grey-7"
           ></q-btn>
         </q-card-section>
         <q-card-section>

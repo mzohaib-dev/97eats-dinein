@@ -1,7 +1,16 @@
 <template>
   <q-card flat>
     <q-card-section>
-      <q-btn class="q-mt-md" icon="arrow_back" outline round @click="goBack" color="grey-7"></q-btn>
+      <q-btn
+        class="q-mt-md"
+        icon="arrow_back"
+        size="sm"
+        round
+        unelevated
+        text-color="grey-8"
+        color="white"
+        @click="goBack"
+        ></q-btn>
     </q-card-section>
     <q-card-section>
       <div class="text-h6 text-grey-8">Enter the OTP number</div>

@@ -9,10 +9,12 @@
         <q-card-section class="flex items-center q-mt-md">
           <q-btn
             icon="arrow_back"
-            outline
+            size="sm"
             round
+            unelevated
+            text-color="grey-8"
+            color="white"
             @click="goBack"
-            color="grey-7"
           ></q-btn>
           <div class="text-subtitle1 text-bold q-ml-lg">My Orders</div>
         </q-card-section>

@@ -15,9 +15,9 @@
             round
             unelevated
             text-color="grey-8"
+            color="white"
             @click="goBack"
             class="absolute absolute-top-left q-ml-md q-mt-md"
-            color="white"
           ></q-btn>
           <div class="text-subtitle1 text-bold q-ml-lg">Order Summary</div>
         </q-card-section>

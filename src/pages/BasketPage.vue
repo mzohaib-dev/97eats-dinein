@@ -112,22 +112,22 @@
                 {{ cardError }}
               </div>
             </q-card-section>
-            <q-card-actions>
+            <q-card-section>
               <q-btn
                 label="Pay Now"
                 @click="payNow"
                 color="black"
                 class="full-width"
               ></q-btn>
-            </q-card-actions>
-            <!--<q-card-actions>
+            </q-card-section>
+            <q-card-section v-if="supportApplePay">
               <div
-                class="apple-pay-button-with-text apple-pay-button-black-with-text full-width"
+                class="apple-pay-button-with-text apple-pay-button-black-with-text full-width" @click="payWithApplePay"
               >
                 <span class="text">Buy with</span>
                 <span class="logo"></span>
               </div>
-            </q-card-actions>-->
+            </q-card-section>-->
           </q-card>
         </q-card-section>
       </q-card>
@@ -235,28 +235,79 @@ onMounted(async () => {
   await frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
   if (window.ApplePaySession) {
     supportApplePay.value = true;
-    console.log('Apple Pay Supported');
-    let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
-    ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier)
-      .then((canMakePayments: boolean) => {
-        if (canMakePayments) {
-          log.value += ' Can make payments';
-        } else {
-          log.value += ' Cannot make payments';
-        }
-      })
-      .catch((e) => {
-        log.value += ' ' + e;
-        console.log(e);
-      });
-  } else {
-    log.value += 'Apple pay is not ssupported';
   }
   loading.value = false;
 });
-const log = ref('');
 const cardError = ref('');
 
+async function payWithApplePay() {
+  if (!window.ApplePaySession) {
+    return;
+  }
+
+  // Define ApplePayPaymentRequest
+  const request = {
+    'countryCode': 'US',
+    'currencyCode': 'USD',
+    'merchantCapabilities': [
+      'supports3DS'
+    ],
+    'supportedNetworks': [
+      'visa',
+      'masterCard',
+      'amex',
+      'discover'
+    ],
+    'total': {
+      'label': 'Demo (Card is not charged)',
+      'type': 'final',
+      'amount': '1.99'
+    }
+  };
+
+  // Create ApplePaySession
+  const session = new window.ApplePaySession(3, request);
+
+  session.onvalidatemerchant = async event => {
+    // Call your own server to request a new merchant session.
+    const merchantSession = await window.validateMerchant();
+    session.completeMerchantValidation(merchantSession);
+  };
+
+  session.onpaymentmethodselected = event => {
+    // Define ApplePayPaymentMethodUpdate based on the selected payment method.
+    // No updates or errors are needed, pass an empty object.
+    const update = {};
+    session.completePaymentMethodSelection(update);
+  };
+
+  session.onshippingmethodselected = event => {
+    // Define ApplePayShippingMethodUpdate based on the selected shipping method.
+    // No updates or errors are needed, pass an empty object.
+    const update = {};
+    session.completeShippingMethodSelection(update);
+  };
+
+  session.onshippingcontactselected = event => {
+    // Define ApplePayShippingContactUpdate based on the selected shipping contact.
+    const update = {};
+    session.completeShippingContactSelection(update);
+  };
+
+  session.onpaymentauthorized = event => {
+    // Define ApplePayPaymentAuthorizationResult
+    const result = {
+      'status': window.ApplePaySession.STATUS_SUCCESS
+    };
+    session.completePayment(result);
+  };
+
+  session.oncancel = event => {
+    // Payment cancelled by WebKit
+  };
+
+  session.begin();
+}
 async function payNow() {
   cardError.value = '';
   if (frames.isCardValid()) {

@@ -66,7 +66,7 @@
     class=""
     style="position: fixed !important"
   >
-    <q-spinner-gears size="50px" color="primary" />
+    <q-img src="~assets/gireeb-logo-animated.gif" width="100px"></q-img>
   </q-inner-loading>
 </template>
 <script setup lang="ts">

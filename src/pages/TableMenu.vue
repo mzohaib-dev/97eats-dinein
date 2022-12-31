@@ -73,7 +73,7 @@
                 <q-tabs
                   :model-value="active"
                   @update:model-value="onUpdateTab"
-                  active-bg-color="yellow-9"
+                  active-bg-color="black"
                   active-color="white"
                   no-caps
                   switch-indicator
@@ -180,7 +180,7 @@
     class=""
     style="position: fixed !important"
   >
-    <q-spinner-gears size="50px" color="primary" />
+    <q-img src="~assets/gireeb-logo-animated.gif" width="100px"></q-img>
   </q-inner-loading>
   <q-dialog v-model="menuDialog" position="bottom">
     <q-card style="width: 500px; max-width: 100%" class="rounded-borders">

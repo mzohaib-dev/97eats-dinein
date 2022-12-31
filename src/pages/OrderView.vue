@@ -92,7 +92,20 @@
               </div>
             </q-card-section>
             <q-separator />
-            <q-card-section>
+            <q-card-section>.
+              <div class="row">
+                <div class="col text-bold">Subtotal</div>
+                <div class="col text-right">
+                  AED {{ orderModel.subtotal.toFixed(2) }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col text-bold">Service Charge</div>
+                <div class="col text-right">
+                  AED {{ orderModel.service_charge.toFixed(2) }}
+                </div>
+              </div>
+              <q-separator/>
               <div class="row">
                 <div class="col text-bold">Order Total</div>
                 <div class="col text-right">

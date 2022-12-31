@@ -12,7 +12,7 @@
   .apple-pay-button-with-text {
     display: inline-block;
     -webkit-appearance: -apple-pay-button;
-    -apple-pay-button-type: buy;
+    -apple-pay-button-type: order;
   }
   .apple-pay-button-with-text > * {
     display: none;

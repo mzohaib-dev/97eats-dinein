@@ -107,7 +107,7 @@
             </q-card-actions>
             <q-card-section>
               <div
-                class="apple-pay-button-with-text apple-pay-button-white-with-text"
+                class="apple-pay-button-with-text apple-pay-button-black-with-text full-width"
               >
                 <span class="text">Buy with</span>
                 <span class="logo"></span>

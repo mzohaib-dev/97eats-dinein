@@ -105,14 +105,14 @@
                 class="full-width"
               ></q-btn>
             </q-card-actions>
-            <q-card-section>
+            <q-card-actions>
               <div
                 class="apple-pay-button-with-text apple-pay-button-black-with-text full-width"
               >
                 <span class="text">Buy with</span>
                 <span class="logo"></span>
               </div>
-            </q-card-section>
+            </q-card-actions>
           </q-card>
         </q-card-section>
       </q-card>

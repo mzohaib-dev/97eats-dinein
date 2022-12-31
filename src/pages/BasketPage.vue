@@ -106,7 +106,12 @@
               ></q-btn>
             </q-card-actions>
             <q-card-section>
-              {{ log }}
+              <div
+                class="apple-pay-button-with-text apple-pay-button-white-with-text"
+              >
+                <span class="text">Buy with</span>
+                <span class="logo"></span>
+              </div>
             </q-card-section>
           </q-card>
         </q-card-section>

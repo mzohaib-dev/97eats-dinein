@@ -1,11 +1,11 @@
 <template>
-  <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
+  <div class="fullscreen bg-red-5 text-white text-center q-pa-md flex flex-center">
     <div>
       <div style="font-size: 30vh">
         404
       </div>
 
-      <div class="text-h2" style="opacity:.4">
+      <div class="text-h2 text-grey-2" style="opacity:.4">
         Oops. Nothing here...
       </div>
 

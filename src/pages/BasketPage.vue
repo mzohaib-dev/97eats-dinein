@@ -105,6 +105,9 @@
                 class="full-width"
               ></q-btn>
             </q-card-actions>
+            <q-card-section>
+              {{ log }}
+            </q-card-section>
           </q-card>
         </q-card-section>
       </q-card>
@@ -212,10 +215,26 @@ onMounted(async () => {
   await frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
   if (window.ApplePaySession) {
     supportApplePay.value = true;
+    log.value += 'Apple pay supported';
+    let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
+    ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier)
+      .then((canMakePayments: boolean) => {
+        if (canMakePayments) {
+          log.value += ' Can make payments';
+        } else {
+          log.value += ' Cannot make payments';
+        }
+      })
+      .catch((e) => {
+        log.value += ' ' + e;
+        console.log(e);
+      });
+  } else {
+    log.value += 'Apple pay is not ssupported';
   }
   loading.value = false;
 });
-
+const log = ref('');
 const cardError = ref('');
 
 async function payNow() {

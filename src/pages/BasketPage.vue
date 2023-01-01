@@ -309,8 +309,8 @@ async function payApple() {
 
   // Define ApplePayPaymentRequest
   const request = {
-    'countryCode': 'US',
-    'currencyCode': 'USD',
+    'countryCode': 'AE',
+    'currencyCode': 'AED',
     'merchantCapabilities': [
       'supports3DS'
     ],
@@ -321,9 +321,9 @@ async function payApple() {
       'discover'
     ],
     'total': {
-      'label': 'Demo (Card is not charged)',
+      'label': 'Order Total',
       'type': 'final',
-      'amount': '1.99'
+      'amount': (cartStore.cartTotal + 1).toFixed(2)
     }
   };
 
@@ -332,9 +332,11 @@ async function payApple() {
   console.log('Session:')
   console.log(session)
 
-  session.onvalidatemerchant = async (event: any) => {
-    // Call your own server to request a new merchant session.
-    const merchantSession = await window.validateMerchant();
+  session.onvalidatemerchant = async (event: { validationURL: string }) => {
+    api.post('dine-in/apple-pay-merchant-session',{
+      validation_url: event.validationURL,
+
+    })
     session.completeMerchantValidation(merchantSession);
   };
 

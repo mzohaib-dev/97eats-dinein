@@ -302,6 +302,7 @@ async function payNow() {
 }
 
 async function payApple() {
+  console.log('Clicked Apple Pay Button')
   if (!window.ApplePaySession) {
     return;
   }
@@ -328,31 +329,13 @@ async function payApple() {
 
   // Create ApplePaySession
   const session = new window.ApplePaySession(3, request);
+  console.log('Session:')
+  console.log(session)
 
   session.onvalidatemerchant = async (event: any) => {
     // Call your own server to request a new merchant session.
     const merchantSession = await window.validateMerchant();
     session.completeMerchantValidation(merchantSession);
-  };
-
-  session.onpaymentmethodselected = (event: any) => {
-    // Define ApplePayPaymentMethodUpdate based on the selected payment method.
-    // No updates or errors are needed, pass an empty object.
-    const update = {};
-    session.completePaymentMethodSelection(update);
-  };
-
-  session.onshippingmethodselected = (event: any) => {
-    // Define ApplePayShippingMethodUpdate based on the selected shipping method.
-    // No updates or errors are needed, pass an empty object.
-    const update = {};
-    session.completeShippingMethodSelection(update);
-  };
-
-  session.onshippingcontactselected = (event: any) => {
-    // Define ApplePayShippingContactUpdate based on the selected shipping contact.
-    const update = {};
-    session.completeShippingContactSelection(update);
   };
 
   session.onpaymentauthorized = (event: any) => {

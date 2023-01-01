@@ -120,14 +120,9 @@
                 class="full-width"
               ></q-btn>
             </q-card-actions>
-            <!--<q-card-actions>
-              <div
-                class="apple-pay-button-with-text apple-pay-button-black-with-text full-width"
-              >
-                <span class="text">Buy with</span>
-                <span class="logo"></span>
-              </div>
-            </q-card-actions>-->
+            <q-card-actions>
+              <q-btn class="full-width" color="black" label="Pay with Apple Pay" @click="payApple"></q-btn>
+            </q-card-actions>
           </q-card>
         </q-card-section>
       </q-card>
@@ -237,7 +232,7 @@ onMounted(async () => {
     supportApplePay.value = true;
     console.log('Apple Pay Supported');
     let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
-    ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier)
+    window.ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier)
       .then((canMakePayments: boolean) => {
         if (canMakePayments) {
           log.value += ' Can make payments';
@@ -304,6 +299,76 @@ async function payNow() {
   } else {
     cardError.value = 'Please enter a valid card number';
   }
+}
+
+async function payApple() {
+  if (!window.ApplePaySession) {
+    return;
+  }
+
+  // Define ApplePayPaymentRequest
+  const request = {
+    'countryCode': 'US',
+    'currencyCode': 'USD',
+    'merchantCapabilities': [
+      'supports3DS'
+    ],
+    'supportedNetworks': [
+      'visa',
+      'masterCard',
+      'amex',
+      'discover'
+    ],
+    'total': {
+      'label': 'Demo (Card is not charged)',
+      'type': 'final',
+      'amount': '1.99'
+    }
+  };
+
+  // Create ApplePaySession
+  const session = new window.ApplePaySession(3, request);
+
+  session.onvalidatemerchant = async (event: any) => {
+    // Call your own server to request a new merchant session.
+    const merchantSession = await window.validateMerchant();
+    session.completeMerchantValidation(merchantSession);
+  };
+
+  session.onpaymentmethodselected = (event: any) => {
+    // Define ApplePayPaymentMethodUpdate based on the selected payment method.
+    // No updates or errors are needed, pass an empty object.
+    const update = {};
+    session.completePaymentMethodSelection(update);
+  };
+
+  session.onshippingmethodselected = (event: any) => {
+    // Define ApplePayShippingMethodUpdate based on the selected shipping method.
+    // No updates or errors are needed, pass an empty object.
+    const update = {};
+    session.completeShippingMethodSelection(update);
+  };
+
+  session.onshippingcontactselected = (event: any) => {
+    // Define ApplePayShippingContactUpdate based on the selected shipping contact.
+    const update = {};
+    session.completeShippingContactSelection(update);
+  };
+
+  session.onpaymentauthorized = (event: any) => {
+    // Define ApplePayPaymentAuthorizationResult
+    const result = {
+      'status': ApplePaySession.STATUS_SUCCESS
+    };
+    session.completePayment(result);
+  };
+
+
+  session.oncancel = (event: any) => {
+    // Payment cancelled by WebKit
+  };
+
+  session.begin();
 }
 </script>
 <style scoped></style>

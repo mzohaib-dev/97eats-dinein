@@ -313,8 +313,8 @@ async function payApple() {
 
   // Define ApplePayPaymentRequest
   const request = {
-    'countryCode': 'US',
-    'currencyCode': 'USD',
+    'countryCode': 'AE',
+    'currencyCode': 'AED',
     'merchantCapabilities': [
       'supports3DS'
     ],
@@ -351,6 +351,7 @@ async function payApple() {
 
   session.onpaymentauthorized = (event: any) => {
     // Define ApplePayPaymentAuthorizationResult
+    logs.value.push(JSON.stringify(event))
     const result = {
       'status': window.ApplePaySession.STATUS_SUCCESS
     };

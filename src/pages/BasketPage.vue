@@ -360,6 +360,12 @@ async function payApple() {
       session.completePayment(result);
       Loading.show()
       logs.value.push('Calling Checkout')
+      logs.value.push('Checkout Request Params')
+      logs.value.push(JSON.stringify({
+        type: "applepay",
+        token_data: event.payment.token.paymentData
+      }))
+      logs.value.push(process.env.CHECKOUT_TOKEN_URL)
       api.post(process.env.CHECKOUT_TOKEN_URL,{
         type: "applepay",
         token_data: event.payment.token.paymentData
@@ -403,7 +409,7 @@ async function payApple() {
           message:'Payment Error Occurred For Checkout',
           type: 'negative'
         })
-        logs.value.push(JSON.stringify(e.response))
+        logs.value.push(JSON.stringify(e.response.data))
       }).finally(() => {
         Loading.hide()
       })

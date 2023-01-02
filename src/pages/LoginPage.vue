@@ -12,8 +12,8 @@
         @click="goBack"></q-btn>
     </q-card-section>
     <q-card-section>
-      <div class="text-h6 text-grey-8">Enter your phone number</div>
-      <div class="text-grey-7">We will send you an SMS with a one-time password (OTP), to verify your phone</div>
+      <div class="text-h6 text-grey-9">Enter your phone number</div>
+      <div class="text-grey-8">We will send you an SMS with a one-time password (OTP), to verify your phone</div>
     </q-card-section>
     <q-card-section>
       <q-form ref="formRef">

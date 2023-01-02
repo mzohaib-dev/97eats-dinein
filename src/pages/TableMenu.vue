@@ -149,7 +149,7 @@
         v-show="cartStore.items.length > 0"
       >
         <q-card flat>
-          <div class="bg-yellow-9" style="height: 3px"></div>
+          <div class="bg-grey-9" style="height: 3px"></div>
           <q-card-section>
             <div class="row">
               <div class="col">
@@ -164,7 +164,7 @@
           </q-card-section>
           <q-card-actions>
             <q-btn
-              color="yellow-9"
+              color="grey-9"
               text-color="white"
               class="full-width"
               label="Basket"

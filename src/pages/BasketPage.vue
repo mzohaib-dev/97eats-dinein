@@ -121,7 +121,8 @@
               ></q-btn>
             </q-card-actions>
             <q-card-actions>
-              <q-btn class="full-width" color="black" label="Pay with Apple Pay" @click="payApple"></q-btn>
+              <div class="apple-pay-button apple-pay-button-black full-width cursor-pointer q-py-sm" @click="payApple">
+              </div>
             </q-card-actions>
           </q-card>
         </q-card-section>

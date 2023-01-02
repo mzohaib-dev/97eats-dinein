@@ -386,13 +386,15 @@ async function payApple() {
               params: { store_id: store_id, table_uuid: uuid },
             }).catch(e => console.log(e));
           }
-        }).catch(() => {
+        }).catch((e) => {
+          logs.value.push(e.response.data.message)
           Notify.create({
             message:'Payment Error Occurred',
             type: 'negative'
           })
         })
-      }).catch(() => {
+      }).catch((e) => {
+        logs.value.push(e.response.data)
         Notify.create({
           message:'Payment Error Occurred',
           type: 'negative'

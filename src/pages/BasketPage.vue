@@ -112,18 +112,20 @@
                 {{ cardError }}
               </div>
             </q-card-section>
-            <q-card-actions>
+            <q-card-section>
               <q-btn
                 label="Pay Now"
                 @click="payNow"
                 color="black"
                 class="full-width"
               ></q-btn>
-            </q-card-actions>
-            <q-card-actions>
-              <div class="apple-pay-button apple-pay-button-black full-width cursor-pointer q-py-sm" @click="payApple">
+            </q-card-section>
+            <q-card-section v-if="supportApplePay">
+              <div class="apple-pay-button-with-text apple-pay-button-white-with-text full-width cursor-pointer q-py-sm" @click="payApple">
+                <span class="text">Buy with</span>
+                <span class="logo"></span>
               </div>
-            </q-card-actions>
+            </q-card-section>
           </q-card>
         </q-card-section>
       </q-card>

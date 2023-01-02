@@ -349,14 +349,65 @@ async function payApple() {
     };
   };
 
-  session.onpaymentauthorized = (event:{payment:any}) => {
+  session.onpaymentauthorized = (event:{payment:{token:{paymentData:any}}}) => {
     // Define ApplePayPaymentAuthorizationResult
     logs.value.push(JSON.stringify(event.payment))
-    const result = {
-      'status': window.ApplePaySession.STATUS_SUCCESS
-    };
+    if(event.payment.token.paymentData) {
+      const result = {
+        'status': window.ApplePaySession.STATUS_SUCCESS
+      };
 
-    session.completePayment(result);
+      session.completePayment(result);
+      Loading.show()
+      api.post(process.env.CHECKOUT_TOKEN_URL,{
+        type: "applepay",
+        token_data: event.payment.token.paymentData
+      }).then((res: {data: {token: string}}) => {
+        api.post(
+          'dine-in/checkout/request-payment',
+          {
+            type: 'APPLE_PAY',
+            token: res.data.token,
+            basket: cartStore.$state,
+          }
+        ).then((payRes: { data: PaymentRequestResponse }) => {
+          if (payRes.data.status == 'Pending') {
+            appStore.order = { id: payRes.data.order_details.order_id };
+            LocalStorage.set('orderId', appStore.order.id);
+            window.location.href = payRes.data._links.redirect.href;
+          } else if (payRes.data.status == 'Authorized') {
+            $router.push({
+              name: 'PaymentSuccess',
+              params: { store_id: store_id, table_uuid: uuid },
+            }).catch(e => console.log(e));
+          } else {
+            $router.push({
+              name: 'PaymentFailure',
+              params: { store_id: store_id, table_uuid: uuid },
+            }).catch(e => console.log(e));
+          }
+        }).catch(() => {
+          Notify.create({
+            message:'Payment Error Occurred',
+            type: 'negative'
+          })
+        })
+      }).catch(() => {
+        Notify.create({
+          message:'Payment Error Occurred',
+          type: 'negative'
+        })
+      }).finally(() => {
+        Loading.hide()
+      })
+    } else {
+      const result = {
+        'status': window.ApplePaySession.STATUS_FAILURE
+      };
+
+      session.completePayment(result);
+    }
+
   };
 
 

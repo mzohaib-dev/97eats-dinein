@@ -359,10 +359,13 @@ async function payApple() {
 
       session.completePayment(result);
       Loading.show()
+      logs.value.push('Calling Checkout')
       api.post(process.env.CHECKOUT_TOKEN_URL,{
         type: "applepay",
         token_data: event.payment.token.paymentData
       }).then((res: {data: {token: string}}) => {
+        logs.value.push('Checkout Token: '+res.data.token)
+        logs.value.push('Calling Request Payment')
         api.post(
           'dine-in/checkout/request-payment',
           {
@@ -371,6 +374,7 @@ async function payApple() {
             basket: cartStore.$state,
           }
         ).then((payRes: { data: PaymentRequestResponse }) => {
+          logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
           if (payRes.data.status == 'Pending') {
             appStore.order = { id: payRes.data.order_details.order_id };
             LocalStorage.set('orderId', appStore.order.id);
@@ -387,6 +391,7 @@ async function payApple() {
             }).catch(e => console.log(e));
           }
         }).catch((e) => {
+          logs.value.push('Calling Checkout Failed')
           logs.value.push(e.response.data.message)
           Notify.create({
             message:'Payment Error Occurred',

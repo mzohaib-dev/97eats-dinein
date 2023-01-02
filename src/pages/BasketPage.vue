@@ -397,7 +397,7 @@ async function payApple() {
             }).catch(e => console.log(e));
           }
         }).catch((e) => {
-          logs.value.push('Calling Checkout Failed')
+          logs.value.push('Calling Request Payment Failed')
           logs.value.push(e.response.data.message)
           Notify.create({
             message:'Payment Error Occurred',
@@ -405,11 +405,12 @@ async function payApple() {
           })
         })
       }).catch((e) => {
+        logs.value.push('Calling Checkout Failed')
         Notify.create({
           message:'Payment Error Occurred For Checkout',
           type: 'negative'
         })
-        logs.value.push(JSON.stringify(e.response.data))
+        logs.value.push(JSON.stringify(e))
       }).finally(() => {
         Loading.hide()
       })

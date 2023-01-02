@@ -121,7 +121,7 @@
               ></q-btn>
             </q-card-section>
             <q-card-section v-if="supportApplePay">
-              <div class="apple-pay-button-with-text apple-pay-button-black-with-text full-width cursor-pointer q-py-sm" @click="payApple">
+              <div class="apple-pay-button-with-text apple-pay-button-black-with-text full-width cursor-pointer q-py-md" @click="payApple">
                 <span class="text">Buy with</span>
                 <span class="logo"></span>
               </div>

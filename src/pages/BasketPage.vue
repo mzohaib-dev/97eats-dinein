@@ -121,7 +121,7 @@
               ></q-btn>
             </q-card-section>
             <q-card-section v-if="supportApplePay">
-              <div class="apple-pay-button-with-text apple-pay-button-white-with-text full-width cursor-pointer q-py-sm" @click="payApple">
+              <div class="apple-pay-button-with-text apple-pay-button-black-with-text full-width cursor-pointer q-py-sm" @click="payApple">
                 <span class="text">Buy with</span>
                 <span class="logo"></span>
               </div>
@@ -243,18 +243,11 @@ onMounted(async () => {
     logs.value.push('Apple Pay Supported')
     console.log('Apple Pay Supported');
     let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
-    window.ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier)
-      .then((canMakePayments: boolean) => {
-        if (canMakePayments) {
-          logs.value.push(' Can make payments');
-        } else {
-          logs.value.push(' Cannot make payments');
-        }
-      })
-      .catch((e:any) => {
-        logs.value.push(e.toString());
-        console.log(e);
-      });
+    if(window.ApplePaySession.canMakePayments()){
+      logs.value.push(' Can make payments');
+    } else {
+      logs.value.push(' Cannot make payments');
+    }
   } else {
     logs.value.push('Apple pay is not supported');
   }

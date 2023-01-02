@@ -126,6 +126,11 @@
                 <span class="logo"></span>
               </div>
             </q-card-section>
+            <q-card-section>
+              <div class="text-subtitle1" v-for="(log,i) in logs" :key="i">
+                {{log}}
+              </div>
+            </q-card-section>
           </q-card>
         </q-card-section>
       </q-card>
@@ -235,16 +240,16 @@ onMounted(async () => {
   await frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
   if (window.ApplePaySession) {
     supportApplePay.value = true;
-    //logs.value.push('Apple Pay Supported')
+    logs.value.push('Apple Pay Supported')
     console.log('Apple Pay Supported');
     let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
     if(window.ApplePaySession.canMakePayments()){
-      //logs.value.push(' Can make payments');
+      logs.value.push(' Can make payments');
     } else {
-      //logs.value.push(' Cannot make payments');
+      logs.value.push(' Cannot make payments');
     }
   } else {
-    //logs.value.push('Apple pay is not supported');
+    logs.value.push('Apple pay is not supported');
   }
   loading.value = false;
 });
@@ -301,7 +306,7 @@ async function payNow() {
 
 async function payApple() {
   console.log('Clicked Apple Pay Button')
-  //logs.value.push('Clicked Apple Pay Button')
+  logs.value.push('Clicked Apple Pay Button')
   if (!window.ApplePaySession) {
     return;
   }
@@ -330,23 +335,23 @@ async function payApple() {
   const session = new window.ApplePaySession(3, request);
   console.log('Session:')
   console.log(session)
-  //logs.value.push('Session Created')
+  logs.value.push('Session Created')
   session.onvalidatemerchant = async (event: { validationURL: string }) => {
-    //logs.value.push('Validation URL: '+event.validationURL)
+    logs.value.push('Validation URL: '+event.validationURL)
     const res = await api.post('dine-in/apple-pay-merchant-session',{
       validation_url: event.validationURL,
     })
-    //logs.value.push(JSON.stringify(res.data))
+    logs.value.push(JSON.stringify(res.data))
     try {
       session.completeMerchantValidation(res.data)
     } catch (e:any) {
-      //logs.value.push(e.toString())
+      logs.value.push(e.toString())
     };
   };
 
   session.onpaymentauthorized = (event:{payment:{token:{paymentData:any}}}) => {
     // Define ApplePayPaymentAuthorizationResult
-    //logs.value.push(JSON.stringify(event.payment))
+    logs.value.push(JSON.stringify(event.payment))
     if(event.payment.token.paymentData) {
       const result = {
         'status': window.ApplePaySession.STATUS_SUCCESS
@@ -354,13 +359,13 @@ async function payApple() {
 
       session.completePayment(result);
       Loading.show()
-      //logs.value.push('Calling Checkout')
-      //logs.value.push('Checkout Request Params')
-      //logs.value.push(JSON.stringify({
-      //  type: "applepay",
-      //  token_data: event.payment.token.paymentData
-      //}))
-      //logs.value.push(process.env.CHECKOUT_TOKEN_URL)
+      logs.value.push('Calling Checkout')
+      logs.value.push('Checkout Request Params')
+      logs.value.push(JSON.stringify({
+        type: "applepay",
+        token_data: event.payment.token.paymentData
+      }))
+      logs.value.push(process.env.CHECKOUT_TOKEN_URL)
       api.post(process.env.CHECKOUT_TOKEN_URL,{
         type: "applepay",
         token_data: event.payment.token.paymentData
@@ -370,8 +375,8 @@ async function payApple() {
           Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY,
         }
       }).then((res: {data: {token: string}}) => {
-        //logs.value.push('Checkout Token: '+res.data.token)
-        //logs.value.push('Calling Request Payment')
+        logs.value.push('Checkout Token: '+res.data.token)
+        logs.value.push('Calling Request Payment')
         Loading.show()
         api.post(
           'dine-in/checkout/request-payment',
@@ -381,7 +386,7 @@ async function payApple() {
             basket: cartStore.$state,
           }
         ).then((payRes: { data: PaymentRequestResponse }) => {
-          //logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
+          logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
           if (payRes.data.status == 'Pending') {
             appStore.order = { id: payRes.data.order_details.order_id };
             LocalStorage.set('orderId', appStore.order.id);
@@ -399,20 +404,20 @@ async function payApple() {
             }).catch(e => console.log(e)).finally(() => Loading.hide());
           }
         }).catch((e) => {
-          //logs.value.push('Calling Request Payment Failed')
-          //logs.value.push(e.response.data.message)
+          logs.value.push('Calling Request Payment Failed')
+          logs.value.push(e.response.data.message)
           Notify.create({
             message:'Payment Error Occurred',
             type: 'negative'
           })
         })
       }).catch((e) => {
-        //logs.value.push('Calling Checkout Failed')
+        logs.value.push('Calling Checkout Failed')
         Notify.create({
           message:'Payment Error Occurred For Checkout',
           type: 'negative'
         })
-        //logs.value.push(JSON.stringify(e))
+        logs.value.push(JSON.stringify(e))
       }).finally(() => {
         Loading.hide()
       })

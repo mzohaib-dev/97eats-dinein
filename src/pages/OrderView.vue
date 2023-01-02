@@ -130,9 +130,10 @@
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { api } from 'boot/axios';
-import { Notify, QBtn, QCard, QCardSection } from 'quasar';
+import {LocalStorage, Notify, QBtn, QCard, QCardSection} from 'quasar';
 import { useAppStore } from 'stores/app';
 import { Order } from 'src/models/Order';
+import {useCartStore} from 'stores/cart';
 const appStore = useAppStore();
 const $route = useRoute();
 const $router = useRouter();
@@ -140,6 +141,7 @@ const store_id = parseInt($route.params.store_id as string);
 const uuid = $route.params.table_uuid as string;
 const showSuccess = $route.query.success || null;
 const loading = ref(true);
+const cartStore = useCartStore()
 onMounted(async () => {
   try {
     const res = await appStore.init();
@@ -162,6 +164,11 @@ onMounted(async () => {
   }
   loading.value = false;
   if (showSuccess) {
+    appStore.order = null;
+    cartStore.items = [];
+    cartStore.instruction = '';
+    LocalStorage.remove('cartItems');
+    LocalStorage.remove('orderId');
     Notify.create({
       message: 'Payment is successful',
       type: 'positive',

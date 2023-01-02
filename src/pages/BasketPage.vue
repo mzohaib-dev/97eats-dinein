@@ -369,6 +369,10 @@ async function payApple() {
       api.post(process.env.CHECKOUT_TOKEN_URL,{
         type: "applepay",
         token_data: event.payment.token.paymentData
+      },{
+        headers: {
+          Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY
+        }
       }).then((res: {data: {token: string}}) => {
         logs.value.push('Checkout Token: '+res.data.token)
         logs.value.push('Calling Request Payment')

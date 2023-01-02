@@ -342,7 +342,11 @@ async function payApple() {
       validation_url: event.validationURL,
     })
     logs.value.push(JSON.stringify(res.data))
-    session.completeMerchantValidation(res.data);
+    try {
+      session.completeMerchantValidation(res.data)
+    } catch (e:any) {
+      logs.value.push(e.toString())
+    };
   };
 
   session.onpaymentauthorized = (event: any) => {

@@ -13,8 +13,8 @@
         ></q-btn>
     </q-card-section>
     <q-card-section>
-      <div class="text-h6 text-grey-8">Enter the OTP number</div>
-      <div class="text-grey-7">We've sent you an SMS with the one-time password to {{phone}}</div>
+      <div class="text-h6 text-grey-9">Enter the OTP number</div>
+      <div class="text-grey-8">We've sent you an SMS with the one-time password to {{phone}}</div>
     </q-card-section>
     <q-card-section class="flex justify-center">
       <VOtpInput

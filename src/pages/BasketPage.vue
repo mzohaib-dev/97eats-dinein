@@ -126,11 +126,6 @@
                 <span class="logo"></span>
               </div>
             </q-card-section>
-            <q-card-section>
-              <div class="text-subtitle1" v-for="(log,i) in logs" :key="i">
-                {{log}}
-              </div>
-            </q-card-section>
           </q-card>
         </q-card-section>
       </q-card>
@@ -240,16 +235,16 @@ onMounted(async () => {
   await frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
   if (window.ApplePaySession) {
     supportApplePay.value = true;
-    logs.value.push('Apple Pay Supported')
+    //logs.value.push('Apple Pay Supported')
     console.log('Apple Pay Supported');
     let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
     if(window.ApplePaySession.canMakePayments()){
-      logs.value.push(' Can make payments');
+      //logs.value.push(' Can make payments');
     } else {
-      logs.value.push(' Cannot make payments');
+      //logs.value.push(' Cannot make payments');
     }
   } else {
-    logs.value.push('Apple pay is not supported');
+    //logs.value.push('Apple pay is not supported');
   }
   loading.value = false;
 });
@@ -306,7 +301,7 @@ async function payNow() {
 
 async function payApple() {
   console.log('Clicked Apple Pay Button')
-  logs.value.push('Clicked Apple Pay Button')
+  //logs.value.push('Clicked Apple Pay Button')
   if (!window.ApplePaySession) {
     return;
   }
@@ -335,23 +330,23 @@ async function payApple() {
   const session = new window.ApplePaySession(3, request);
   console.log('Session:')
   console.log(session)
-  logs.value.push('Session Created')
+  //logs.value.push('Session Created')
   session.onvalidatemerchant = async (event: { validationURL: string }) => {
-    logs.value.push('Validation URL: '+event.validationURL)
+    //logs.value.push('Validation URL: '+event.validationURL)
     const res = await api.post('dine-in/apple-pay-merchant-session',{
       validation_url: event.validationURL,
     })
-    logs.value.push(JSON.stringify(res.data))
+    //logs.value.push(JSON.stringify(res.data))
     try {
       session.completeMerchantValidation(res.data)
     } catch (e:any) {
-      logs.value.push(e.toString())
+      //logs.value.push(e.toString())
     };
   };
 
   session.onpaymentauthorized = (event:{payment:{token:{paymentData:any}}}) => {
     // Define ApplePayPaymentAuthorizationResult
-    logs.value.push(JSON.stringify(event.payment))
+    //logs.value.push(JSON.stringify(event.payment))
     if(event.payment.token.paymentData) {
       const result = {
         'status': window.ApplePaySession.STATUS_SUCCESS

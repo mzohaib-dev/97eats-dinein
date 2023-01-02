@@ -370,8 +370,9 @@ async function payApple() {
         type: "applepay",
         token_data: event.payment.token.paymentData
       },{
+        withCredentials: false,
         headers: {
-          Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY
+          Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY,
         }
       }).then((res: {data: {token: string}}) => {
         logs.value.push('Checkout Token: '+res.data.token)

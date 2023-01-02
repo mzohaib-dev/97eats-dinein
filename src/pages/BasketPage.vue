@@ -313,8 +313,8 @@ async function payApple() {
 
   // Define ApplePayPaymentRequest
   const request = {
-    'countryCode': 'AE',
-    'currencyCode': 'AED',
+    'countryCode': 'US',
+    'currencyCode': 'USD',
     'merchantCapabilities': [
       'supports3DS'
     ],

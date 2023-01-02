@@ -349,9 +349,9 @@ async function payApple() {
     };
   };
 
-  session.onpaymentauthorized = (event: any) => {
+  session.onpaymentauthorized = (event:{payment:any}) => {
     // Define ApplePayPaymentAuthorizationResult
-    logs.value.push(JSON.stringify(event))
+    logs.value.push(JSON.stringify(event.payment))
     const result = {
       'status': window.ApplePaySession.STATUS_SUCCESS
     };

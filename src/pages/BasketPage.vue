@@ -126,6 +126,11 @@
                 <span class="logo"></span>
               </div>
             </q-card-section>
+            <q-card-section>
+              <div class="text-subtitle1" v-for="(log,i) in logs" :key="i">
+                {{log}}
+              </div>
+            </q-card-section>
           </q-card>
         </q-card-section>
       </q-card>
@@ -215,6 +220,7 @@ function addQty(cartItem: CartItem) {
 const appStore = useAppStore();
 
 const frames = window.Frames as Frames;
+const logs = ref<string[]>([])
 onMounted(async () => {
   try {
     const res = await appStore.init();
@@ -227,32 +233,33 @@ onMounted(async () => {
     if (cartStore.items.length == 0) {
       basketEmptyDialog.value = true;
     }
-  } catch (e) {
+  } catch (e:any) {
+    logs.value.push(e.toString())
     console.log(e);
   }
   await frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
   if (window.ApplePaySession) {
     supportApplePay.value = true;
+    logs.value.push('Apple Pay Supported')
     console.log('Apple Pay Supported');
     let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
     window.ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier)
       .then((canMakePayments: boolean) => {
         if (canMakePayments) {
-          log.value += ' Can make payments';
+          logs.value.push(' Can make payments');
         } else {
-          log.value += ' Cannot make payments';
+          logs.value.push(' Cannot make payments');
         }
       })
-      .catch((e) => {
-        log.value += ' ' + e;
+      .catch((e:any) => {
+        logs.value.push(e.toString());
         console.log(e);
       });
   } else {
-    log.value += 'Apple pay is not ssupported';
+    logs.value.push('Apple pay is not supported');
   }
   loading.value = false;
 });
-const log = ref('');
 const cardError = ref('');
 
 async function payNow() {
@@ -306,6 +313,7 @@ async function payNow() {
 
 async function payApple() {
   console.log('Clicked Apple Pay Button')
+  logs.value.push('Clicked Apple Pay Button')
   if (!window.ApplePaySession) {
     return;
   }
@@ -334,11 +342,11 @@ async function payApple() {
   const session = new window.ApplePaySession(3, request);
   console.log('Session:')
   console.log(session)
-
+  logs.value.push('Session Created')
   session.onvalidatemerchant = async (event: { validationURL: string }) => {
+    logs.value.push('Validation URL: '+event.validationURL)
     api.post('dine-in/apple-pay-merchant-session',{
       validation_url: event.validationURL,
-
     })
     session.completeMerchantValidation(merchantSession);
   };

@@ -399,11 +399,11 @@ async function payApple() {
           })
         })
       }).catch((e) => {
-        logs.value.push(e.response.data)
         Notify.create({
-          message:'Payment Error Occurred',
+          message:'Payment Error Occurred For Checkout',
           type: 'negative'
         })
+        logs.value.push(JSON.stringify(e.response))
       }).finally(() => {
         Loading.hide()
       })

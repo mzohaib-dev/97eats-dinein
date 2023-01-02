@@ -338,17 +338,19 @@ async function payApple() {
   logs.value.push('Session Created')
   session.onvalidatemerchant = async (event: { validationURL: string }) => {
     logs.value.push('Validation URL: '+event.validationURL)
-    api.post('dine-in/apple-pay-merchant-session',{
+    const res = await api.post('dine-in/apple-pay-merchant-session',{
       validation_url: event.validationURL,
     })
-    session.completeMerchantValidation(merchantSession);
+    logs.value.push(JSON.stringify(res.data))
+    session.completeMerchantValidation(res.data);
   };
 
   session.onpaymentauthorized = (event: any) => {
     // Define ApplePayPaymentAuthorizationResult
     const result = {
-      'status': ApplePaySession.STATUS_SUCCESS
+      'status': window.ApplePaySession.STATUS_SUCCESS
     };
+
     session.completePayment(result);
   };
 

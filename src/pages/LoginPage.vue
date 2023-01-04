@@ -80,7 +80,7 @@ async function sendOtp() {
   Loading.show()
   if(model.value.phone) {
     let phone = model.value.phone
-    if(phone.at(0) == '0') {
+    if(phone.slice(0,1) == '0') {
       phone = phone.substring(1)
     }
     if(phone.length !== 9) {
@@ -88,7 +88,10 @@ async function sendOtp() {
       return
     }
     try {
-      const res: { data: { message: string } } = await api.post('dine-in/otp', model.value)
+      const res: { data: { message: string } } = await api.post('dine-in/otp', {
+        phone:phone,
+        country_code: '+971'
+      })
       if(res.data.message === 'success') {
         await $router.push({
           name:'Otp',

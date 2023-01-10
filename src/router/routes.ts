@@ -46,6 +46,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/OrderView.vue'),
         name: 'OrderView',
       },
+      {
+        path: 'table/:table_uuid',
+        component: () => import('pages/TableStores.vue'),
+        name: 'TableStores',
+      },
     ],
   },
 

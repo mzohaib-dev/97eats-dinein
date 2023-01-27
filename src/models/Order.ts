@@ -5,6 +5,7 @@ export interface Order {
   status: string;
   status_to_show: string;
   grand_total: number;
+  vat_amount: number;
   subtotal: number;
   service_charge: number;
   items: OrderItem[];

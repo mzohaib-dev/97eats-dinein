@@ -20,12 +20,8 @@ import { LocalStorage } from 'quasar';
 import { CartItem } from 'src/models/Cart';
 import { useRoute } from 'vue-router';
 import { useCartStore } from 'stores/cart';
-import { useAppStore } from 'stores/app';
-import { TableMenu } from 'src/models/Table';
-import { api } from 'boot/axios';
 const $route = useRoute();
 const cartStore = useCartStore();
-const appStore = useAppStore();
 onMounted(() => {
   const uuid = $route.params.table_uuid as string;
   cartStore.table_uuid = uuid;

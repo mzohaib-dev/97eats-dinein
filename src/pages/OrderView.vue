@@ -92,11 +92,17 @@
               </div>
             </q-card-section>
             <q-separator />
-            <q-card-section>.
+            <q-card-section>
               <div class="row">
                 <div class="col text-bold">Subtotal</div>
                 <div class="col text-right">
                   AED {{ orderModel.subtotal.toFixed(2) }}
+                </div>
+              </div>
+              <div class="row" v-if="orderModel.vat_amount">
+                <div class="col text-bold">VAT</div>
+                <div class="col text-right">
+                  AED {{ orderModel.vat_amount.toFixed(2) }}
                 </div>
               </div>
               <div class="row q-mt-sm">
@@ -105,7 +111,7 @@
                   AED {{ orderModel.service_charge.toFixed(2) }}
                 </div>
               </div>
-              <q-separator spaced/>
+              <q-separator spaced />
               <div class="row">
                 <div class="col text-bold">Order Total</div>
                 <div class="col text-right">
@@ -130,10 +136,10 @@
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { api } from 'boot/axios';
-import {LocalStorage, Notify, QBtn, QCard, QCardSection} from 'quasar';
+import { LocalStorage, Notify, QBtn, QCard, QCardSection } from 'quasar';
 import { useAppStore } from 'stores/app';
 import { Order } from 'src/models/Order';
-import {useCartStore} from 'stores/cart';
+import { useCartStore } from 'stores/cart';
 const appStore = useAppStore();
 const $route = useRoute();
 const $router = useRouter();
@@ -141,7 +147,7 @@ const store_id = parseInt($route.params.store_id as string);
 const uuid = $route.params.table_uuid as string;
 const showSuccess = $route.query.success || null;
 const loading = ref(true);
-const cartStore = useCartStore()
+const cartStore = useCartStore();
 onMounted(async () => {
   try {
     const res = await appStore.init();

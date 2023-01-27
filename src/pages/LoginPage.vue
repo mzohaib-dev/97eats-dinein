@@ -1,14 +1,7 @@
 <template>
   <q-card flat>
     <q-card-section>
-      <q-btn
-        class="q-mt-md"
-        icon="arrow_back"
-        size="sm"
-        round
-        unelevated
-        text-color="grey-8"
-        color="white"
+      <q-btn class="q-mt-md" icon="arrow_back" size="sm" round unelevated text-color="grey-8" color="white"
         @click="goBack"></q-btn>
     </q-card-section>
     <q-card-section>
@@ -18,17 +11,9 @@
     <q-card-section>
       <q-form ref="formRef">
         <label class="text-subtitle2">Your Phone Number</label>
-        <q-input
-          v-model="model.phone"
-          type="number"
-          prefix="+971"
-          outlined
-          dense
-          lazy-rules
-          :rules="[v => !!v || 'Required']"
-          :error="errors.phone.length > 0"
-          :error-message="errors.phone"
-          color="grey-7"></q-input>
+        <q-input v-model="model.phone" type="number" prefix="+971" outlined inputmode="numeric" pattern="[0-9]*"
+          novalidate dense lazy-rules :rules="[v => !!v || 'Required']" :error="errors.phone.length > 0"
+          :error-message="errors.phone" color="grey-7"></q-input>
       </q-form>
     </q-card-section>
     <q-card-actions>
@@ -37,17 +22,17 @@
   </q-card>
 </template>
 <script setup lang="ts">
-import {useRoute, useRouter} from 'vue-router';
-import {onMounted, ref} from 'vue';
-import {User} from 'src/models/User';
-import {api} from 'boot/axios';
-import {Loading} from 'quasar';
-import {useAppStore} from 'stores/app';
+import { useRoute, useRouter } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import { User } from 'src/models/User';
+import { api } from 'boot/axios';
+import { Loading } from 'quasar';
+import { useAppStore } from 'stores/app';
 
 onMounted(async () => {
   try {
     const res = await appStore.init()
-    if(res === 'authenticated') {
+    if (res === 'authenticated') {
       await $router.push({
         name: 'Menu',
         params: {
@@ -65,12 +50,12 @@ const $router = useRouter()
 const store_id = parseInt($route.params.store_id as string)
 const uuid = $route.params.table_uuid as string
 async function goBack() {
-  await $router.push({name:'Menu', params: {store_id: store_id, table_uuid: uuid}})
+  await $router.push({ name: 'Menu', params: { store_id: store_id, table_uuid: uuid } })
 }
 const appStore = useAppStore()
 const model = ref<User>({
   phone: '',
-  country_code:'+971'
+  country_code: '+971'
 })
 
 const errors = ref({
@@ -78,20 +63,20 @@ const errors = ref({
 })
 async function sendOtp() {
   Loading.show()
-  if(model.value.phone) {
+  if (model.value.phone) {
     let phone = model.value.phone
-    if(phone.at(0) == '0') {
+    if (phone.at(0) == '0') {
       phone = phone.substring(1)
     }
-    if(phone.length !== 9) {
+    if (phone.length !== 9) {
       errors.value.phone = 'Invalid Phone Number'
       return
     }
     try {
       const res: { data: { message: string } } = await api.post('dine-in/otp', model.value)
-      if(res.data.message === 'success') {
+      if (res.data.message === 'success') {
         await $router.push({
-          name:'Otp',
+          name: 'Otp',
           params: {
             store_id: store_id,
             table_uuid: uuid

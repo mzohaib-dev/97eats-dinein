@@ -92,8 +92,7 @@
               </div>
             </q-card-section>
             <q-separator />
-            <q-card-section
-              >.
+            <q-card-section>
               <div class="row">
                 <div class="col text-bold">Subtotal</div>
                 <div class="col text-right">

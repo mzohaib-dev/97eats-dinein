@@ -190,6 +190,19 @@ onMounted(async () => {
     console.log(e);
   }
   await frames.init(process.env.CHECKOUT_PUBLIC_API_KEY);
+  if (window.ApplePaySession) {
+    supportApplePay.value = true;
+    // logs.value.push('Apple Pay Supported')
+    console.log('Apple Pay Supported');
+    let merchantIdentifier = 'merchant.ck.ae.sandbox.eats97';
+    if (window.ApplePaySession.canMakePayments()) {
+      // logs.value.push(' Can make payments');
+    } else {
+      // logs.value.push(' Cannot make payments');
+    }
+  } else {
+    // logs.value.push('Apple pay is not supported');
+  }
   try {
     const d: { data: Restaurant } = await api.get('stores/' + store_id.toString())
     if (d) {

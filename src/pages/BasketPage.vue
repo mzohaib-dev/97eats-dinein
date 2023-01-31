@@ -172,7 +172,6 @@ function addQty(cartItem: CartItem) {
 const appStore = useAppStore();
 
 const frames = window.Frames as Frames;
-const logs = ref<string[]>([])
 onMounted(async () => {
   try {
     const res = await appStore.init();
@@ -208,6 +207,7 @@ onMounted(async () => {
     if (d) {
       storeModel.value = d.data
       cartStore.vat_included = storeModel.value.vat_included
+      cartStore.store_service_charge = storeModel.value.service_charge
     }
   } catch (e) {
     console.log(e)

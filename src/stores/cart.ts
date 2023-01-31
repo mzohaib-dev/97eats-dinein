@@ -9,6 +9,7 @@ export const useCartStore = defineStore('cart', {
     items: [] as CartItem[],
     instruction: '',
     vat_included: true,
+    store_service_charge: 0,
   }),
 
   getters: {
@@ -27,7 +28,7 @@ export const useCartStore = defineStore('cart', {
       return this.vat_included ? 0 : (this.cartTotal * 5) / 100;
     },
     serviceCharge(): number {
-      return 1;
+      return 1 + this.store_service_charge;
     },
     grandTotal(): number {
       return this.cartTotal + this.vat + this.serviceCharge;

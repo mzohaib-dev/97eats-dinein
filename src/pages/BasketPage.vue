@@ -317,7 +317,7 @@ async function payApple() {
     'total': {
       'label': 'Order Total',
       'type': 'final',
-      'amount': (cartStore.cartTotal + 1).toFixed(2)
+      'amount': (cartStore.grandTotal).toFixed(2)
     }
   };
 

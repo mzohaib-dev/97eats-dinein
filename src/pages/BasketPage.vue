@@ -1,22 +1,10 @@
 <template>
-  <transition
-    appear
-    enter-active-class="animated fadeIn"
-    leave-active-class="animated fadeOut"
-  >
+  <transition appear enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
     <div v-show="!loading">
       <q-card flat class="full-height bg-grey-3">
         <q-card-section>
-          <q-btn
-            class="q-mt-md"
-            icon="arrow_back"
-            size="sm"
-            round
-            unelevated
-            text-color="grey-8"
-            color="white"
-            @click="goBack"
-          ></q-btn>
+          <q-btn class="q-mt-md" icon="arrow_back" size="sm" round unelevated text-color="grey-8" color="white"
+            @click="goBack"></q-btn>
         </q-card-section>
         <q-card-section>
           <q-card flat>
@@ -27,15 +15,10 @@
             </q-card-section>
             <q-separator />
             <q-card-section>
-              <div
-                class="row q-mb-md"
-                v-for="(cartItem, i) in cartStore.items"
-                :key="i"
-              >
+              <div class="row q-mb-md" v-for="(cartItem, i) in cartStore.items" :key="i">
                 <div class="col-8">
                   <div class="text-bold">
-                    <span v-if="cartItem.qty > 1">{{ cartItem.qty }} x </span
-                    >{{ cartItem.name }}
+                    <span v-if="cartItem.qty > 1">{{ cartItem.qty }} x </span>{{ cartItem.name }}
                   </div>
                   <div class="text-caption text-grey-8">
                     {{ getAddons(cartItem) }}
@@ -43,33 +26,16 @@
                   <div class="text-subtitle2 text-grey-8">
                     {{ getCartItemTotal(cartItem) }}
                   </div>
-                  <div
-                    class="text-caption text-grey-7"
-                    v-if="cartItem.instructions"
-                  >
+                  <div class="text-caption text-grey-7" v-if="cartItem.instructions">
                     {{ cartItem.instructions }}
                   </div>
                 </div>
                 <div class="col-4 text-right">
-                  <q-btn
-                    unelevated
-                    size="xs"
-                    round
-                    icon="remove"
-                    color="grey-3"
-                    text-color="grey-8"
-                    @click="removeQty(cartItem, i)"
-                  ></q-btn>
+                  <q-btn unelevated size="xs" round icon="remove" color="grey-3" text-color="grey-8"
+                    @click="removeQty(cartItem, i)"></q-btn>
                   <span class="q-mx-md">{{ cartItem.qty }}</span>
-                  <q-btn
-                    unelevated
-                    size="xs"
-                    round
-                    icon="add"
-                    color="grey-3"
-                    text-color="grey-8"
-                    @click="addQty(cartItem)"
-                  ></q-btn>
+                  <q-btn unelevated size="xs" round icon="add" color="grey-3" text-color="grey-8"
+                    @click="addQty(cartItem)"></q-btn>
                 </div>
               </div>
             </q-card-section>
@@ -104,14 +70,11 @@
           </q-card>
           <q-card flat class="q-mt-md">
             <q-card-section>
-              <div
-                class="card-frame"
-                style="
-                  height: 50px;
-                  border: 1px solid #aaa;
-                  border-radius: 10px;
-                "
-              >
+              <div class="card-frame" style="
+                          height: 50px;
+                          border: 1px solid #aaa;
+                          border-radius: 10px;
+                        ">
                 <!-- form will be added here -->
               </div>
               <div v-if="cardError" class="text-caption text-red-7">
@@ -119,18 +82,11 @@
               </div>
             </q-card-section>
             <q-card-section>
-              <q-btn
-                label="Pay Now"
-                @click="payNow"
-                color="black"
-                class="full-width"
-              ></q-btn>
+              <q-btn label="Pay Now" @click="payNow" color="black" class="full-width"></q-btn>
             </q-card-section>
             <q-card-section v-if="supportApplePay">
-              <div
-                class="apple-pay-button-with-text apple-pay-button-black-with-text full-width cursor-pointer q-py-md"
-                @click="payApple"
-              >
+              <div class="apple-pay-button-with-text apple-pay-button-black-with-text full-width cursor-pointer q-py-md"
+                @click="payApple">
                 <span class="text">Buy with</span>
                 <span class="logo"></span>
               </div>
@@ -139,23 +95,14 @@
               <div id="google-pay-container"></div>
             </q-card-section>
             <q-card-section v-if="storeModel?.has_dine_in_cod">
-              <q-btn
-                label="Cash on Delivery"
-                @click="payCash"
-                color="black"
-                class="full-width"
-              ></q-btn>
+              <q-btn label="Cash on Delivery" @click="payCash" color="black" class="full-width"></q-btn>
             </q-card-section>
           </q-card>
         </q-card-section>
       </q-card>
     </div>
   </transition>
-  <q-inner-loading
-    :showing="loading"
-    class=""
-    style="position: fixed !important"
-  >
+  <q-inner-loading :showing="loading" class="" style="position: fixed !important">
     <q-img src="~assets/gireeb-logo-animated.gif" width="100px"></q-img>
   </q-inner-loading>
   <q-dialog full-width v-model="basketEmptyDialog" persistent>
@@ -166,12 +113,7 @@
         <div class="text-grey-7">The basket is empty</div>
       </q-card-section>
       <q-card-actions>
-        <q-btn
-          label="Go to Menu"
-          class="full-width"
-          color="yellow-9"
-          @click="goBack"
-        ></q-btn>
+        <q-btn label="Go to Menu" class="full-width" color="yellow-9" @click="goBack"></q-btn>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -611,6 +553,73 @@ function payGoogle() {
       // if using gateway tokenization, pass this token without modification
       const paymentToken = paymentData.paymentMethodData.tokenizationData.token;
       console.log(paymentToken);
+      api
+        .post(
+          process.env.CHECKOUT_TOKEN_URL,
+          {
+            type: 'googlepay',
+            token_data: JSON.parse(paymentToken),
+          },
+          {
+            withCredentials: false,
+            headers: {
+              Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY,
+            },
+          }
+        )
+        .then((res: { data: { token: string } }) => {
+          // logs.value.push('Checkout Token: '+res.data.token)
+          // logs.value.push('Calling Request Payment')
+          Loading.show();
+          api
+            .post('dine-in/checkout/request-payment', {
+              type: 'GOOGLE_PAY',
+              token: res.data.token,
+              basket: cartStore.$state,
+            })
+            .then((payRes: { data: PaymentRequestResponse }) => {
+              // logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
+              if (payRes.data.status == 'Pending') {
+                appStore.order = { id: payRes.data.order_details.order_id };
+                LocalStorage.set('orderId', appStore.order.id);
+                window.location.href = payRes.data._links.redirect.href;
+              } else if (payRes.data.status == 'Authorized') {
+                $router
+                  .push({
+                    name: 'OrderView',
+                    params: {
+                      store_id: store_id,
+                      table_uuid: uuid,
+                      id: payRes.data.order_details.order_id,
+                    },
+                    query: { success: 'true' },
+                  })
+                  .catch((e) => console.log(e));
+              } else {
+                $router
+                  .push({
+                    name: 'PaymentFailure',
+                    params: { store_id: store_id, table_uuid: uuid },
+                  })
+                  .catch((e) => console.log(e))
+                  .finally(() => Loading.hide());
+              }
+            })
+            .catch((e) => {
+              // logs.value.push('Calling Request Payment Failed')
+              // logs.value.push(e.response.data.message)
+              Notify.create({
+                message: 'Payment Error Occurred',
+                type: 'negative',
+              });
+            });
+        })
+        .catch((e) => {
+          Notify.create({
+            message: 'Payment Error Occurred For Checkout',
+            type: 'negative',
+          });
+        })
     })
     .catch(function (err) {
       // show error in developer console for debugging

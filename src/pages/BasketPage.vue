@@ -71,10 +71,10 @@
           <q-card flat class="q-mt-md">
             <q-card-section>
               <div class="card-frame" style="
-                          height: 50px;
-                          border: 1px solid #aaa;
-                          border-radius: 10px;
-                        ">
+                                  height: 50px;
+                                  border: 1px solid #aaa;
+                                  border-radius: 10px;
+                                ">
                 <!-- form will be added here -->
               </div>
               <div v-if="cardError" class="text-caption text-red-7">
@@ -91,7 +91,7 @@
                 <span class="logo"></span>
               </div>
             </q-card-section>
-            <q-card-section v-show="supportGooglePay">
+            <q-card-section v-show="supportGooglePay && storeModel?.id == 1">
               <div id="google-pay-container"></div>
             </q-card-section>
             <q-card-section v-if="storeModel?.has_dine_in_cod">
@@ -315,7 +315,7 @@ async function payCash() {
 }
 
 async function payApple() {
-  console.log('Clicked Apple Pay Button');
+  //console.log('Clicked Apple Pay Button');
   // logs.value.push('Clicked Apple Pay Button')
   if (!window.ApplePaySession) {
     return;
@@ -336,8 +336,8 @@ async function payApple() {
 
   // Create ApplePaySession
   const session = new window.ApplePaySession(3, request);
-  console.log('Session:');
-  console.log(session);
+  //console.log('Session:');
+  //console.log(session);
   // logs.value.push('Session Created')
   session.onvalidatemerchant = async (event: { validationURL: string }) => {
     // logs.value.push('Validation URL: '+event.validationURL)
@@ -468,7 +468,7 @@ const tokenizationSpecification = {
   type: 'PAYMENT_GATEWAY',
   parameters: {
     gateway: 'checkoutltd',
-    gatewayMerchantId: 'pk_sbox_4gpm6juoifix5xw2r46jmyxj2e4',
+    gatewayMerchantId: process.env.CHECKOUT_PUBLIC_API_KEY
   },
 };
 
@@ -497,7 +497,7 @@ const cardPaymentMethod = Object.assign(
 );
 
 const paymentsClient = new google.payments.api.PaymentsClient({
-  environment: 'TEST',
+  environment: process.env.GOOGLE_PAY_ENV,
 });
 
 const supportGooglePay = ref(false);
@@ -516,8 +516,6 @@ async function initGooglePay() {
         onClick: () => payGoogle(),
         allowedPaymentMethods: [cardPaymentMethod],
       }); // make sure to provide an allowed payment method
-      console.log(button);
-      console.log(document.getElementById('google-pay-container'));
       document.getElementById('google-pay-container')?.appendChild(button);
     } else {
       console.log('Google Pay Not Supported');
@@ -543,8 +541,8 @@ function payGoogle() {
   };
 
   paymentDataRequest.merchantInfo = {
-    merchantName: 'Example Merchant',
-    merchantId: '01234567890123456789',
+    merchantName: process.env.GOOGLE_PAY_MERCHANT_NAME,
+    merchantId: process.env.GOOGLE_PAY_MERCHANT_ID,
   };
 
   paymentsClient

@@ -1,15 +1,8 @@
 <template>
-  <transition
-    appear
-    enter-active-class="animated fadeIn"
-    leave-active-class="animated fadeOut"
-  >
+  <transition appear enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
     <div v-show="!loading">
       <q-card>
-        <q-card-section
-          class="q-py-lg flex justify-around"
-          style="background: #fdbe0f"
-        >
+        <q-card-section class="q-py-lg flex justify-around" style="background: #fdbe0f">
           <div class="col flex justify-center items-center">
             <a href="https://gireeb.ae/app-stores" target="_blank">
               <q-img src="~assets/logo_small.png" width="150px"></q-img>
@@ -22,44 +15,23 @@
           </div>
         </q-card-section>
       </q-card>
-      <div
-        class=""
-        style="position: -webkit-sticky; position: sticky; top: 0; z-index: 10"
-        ref="headerRef"
-      >
+      <div class="" style="position: -webkit-sticky; position: sticky; top: 0; z-index: 10" ref="headerRef">
         <q-card flat bordered>
-          <q-card-section
-            class="flex justify-between items-center q-py-xs q-pr-xs"
-          >
+          <q-card-section class="flex justify-between items-center q-py-xs q-pr-xs">
             <q-avatar class="shadow-3" size="sm">
-              <q-img
-                placeholder-src="~assets/g.jpg"
-                :src="model ? model.store.thumbnail : ''"
-              ></q-img>
+              <q-img placeholder-src="~assets/g.jpg" :src="model ? model.store.thumbnail : ''"></q-img>
             </q-avatar>
             <div class="text-grey-7 text-caption">
               Table No. {{ tableNumber }}
             </div>
             <template v-if="appStore.user">
-              <q-btn
-                icon="account_circle"
-                size="md"
-                round
-                flat
-                @click="accountDialog = true"
-              ></q-btn>
+              <q-btn icon="account_circle" size="md" round flat @click="accountDialog = true"></q-btn>
             </template>
             <template v-else>
-              <q-btn
-                icon="account_circle"
-                size="md"
-                round
-                flat
-                :to="{
-                  name: 'Login',
-                  params: { store_id: store_id, table_uuid: uuid },
-                }"
-              ></q-btn>
+              <q-btn icon="account_circle" size="md" round flat :to="{
+                name: 'Login',
+                params: { store_id: store_id, table_uuid: uuid },
+              }"></q-btn>
             </template>
           </q-card-section>
           <q-separator />
@@ -70,16 +42,8 @@
               </div>
               <q-separator vertical />
               <div class="col" v-if="model">
-                <q-tabs
-                  :model-value="active"
-                  @update:model-value="onUpdateTab"
-                  active-bg-color="black"
-                  active-color="white"
-                  no-caps
-                  switch-indicator
-                  outside-arrows
-                  mobile-arrows
-                >
+                <q-tabs :model-value="active" @update:model-value="onUpdateTab" active-bg-color="black"
+                  active-color="white" no-caps switch-indicator outside-arrows mobile-arrows>
                   <template v-for="(cat, i) in model.item_categories" :key="i">
                     <q-tab :name="i" :label="cat.name"></q-tab>
                   </template>
@@ -102,21 +66,10 @@
                   <div class="col-6" v-for="(item, j) in cat.items" :key="j">
                     <q-card flat>
                       <div class="relative-position">
-                        <q-img
-                          :src="item.thumbnail"
-                          class="relative-position"
-                          style="border-radius: 10px"
-                          placeholder-src="~assets/placeholder.png"
-                          :ratio="1"
-                        />
-                        <q-btn
-                          color="black"
-                          round
-                          icon="add"
-                          @click="openItemDialog(item)"
-                          size="sm"
-                          class="absolute-bottom-right q-mb-sm q-mr-sm"
-                        >
+                        <q-img :src="item.thumbnail" class="relative-position" style="border-radius: 10px"
+                          placeholder-src="~assets/placeholder.png" :ratio="1" />
+                        <q-btn color="black" round icon="add" @click="openItemDialog(item)" size="sm"
+                          class="absolute-bottom-right q-mb-sm q-mr-sm">
                         </q-btn>
                       </div>
                       <q-card-section>
@@ -124,14 +77,8 @@
                         <div class="text text-grey-8" v-if="item.price > 0">
                           AED {{ item.price.toFixed(2) }}
                         </div>
-                        <q-chip
-                          color="grey-2"
-                          class="q-ma-none"
-                          text-color="grey-8"
-                          square
-                          v-else
-                          >Price on Selection</q-chip
-                        >
+                        <q-chip color="grey-2" class="q-ma-none" text-color="grey-8" square v-else>Price on
+                          Selection</q-chip>
                       </q-card-section>
                     </q-card>
                   </div>
@@ -144,42 +91,35 @@
           </div>
         </q-card-section>
       </q-card>
-      <div
-        class="fixed-bottom full-width total-block show"
-        v-show="cartStore.items.length > 0"
-      >
-        <q-card flat>
-          <div class="bg-grey-9" style="height: 3px"></div>
-          <q-card-section>
-            <div class="row">
-              <div class="col">
-                <div class="text-subtitle1 text-bold">Total</div>
-              </div>
-              <div class="col">
-                <div class="text-subtitle1 text-bold text-right">
-                  AED {{ cartStore.cartTotal.toFixed(2) }}
+      <div class="fixed-bottom full-width total-block show" v-show="cartStore.items.length > 0">
+        <div class="row">
+          <div class="col-md-4 col-12"></div>
+          <div class="col-md-4 col-12">
+            <q-card flat>
+              <div class="bg-grey-9" style="height: 3px"></div>
+              <q-card-section>
+                <div class="row">
+                  <div class="col">
+                    <div class="text-subtitle1 text-bold">Total</div>
+                  </div>
+                  <div class="col">
+                    <div class="text-subtitle1 text-bold text-right">
+                      AED {{ cartStore.cartTotal.toFixed(2) }}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </q-card-section>
-          <q-card-actions>
-            <q-btn
-              color="grey-9"
-              text-color="white"
-              class="full-width"
-              label="Basket"
-              @click="gotoBasket"
-            ></q-btn>
-          </q-card-actions>
-        </q-card>
+              </q-card-section>
+              <q-card-actions>
+                <q-btn color="grey-9" text-color="white" class="full-width" label="Basket" @click="gotoBasket"></q-btn>
+              </q-card-actions>
+            </q-card>
+          </div>
+          <div class="col-md-4 col-12"></div>
+        </div>
       </div>
     </div>
   </transition>
-  <q-inner-loading
-    :showing="loading"
-    class=""
-    style="position: fixed !important"
-  >
+  <q-inner-loading :showing="loading" class="" style="position: fixed !important">
     <q-img src="~assets/gireeb-logo-animated.gif" width="100px"></q-img>
   </q-inner-loading>
   <q-dialog v-model="menuDialog" position="bottom">
@@ -192,11 +132,7 @@
         <q-list separator v-if="model">
           <template v-for="(cat, i) in model.item_categories" :key="i">
             <q-item clickable dense @click="goto(i)" class="q-pl-none">
-              <q-item-section
-                style="font-size: 0.9rem"
-                class="text text-grey-8"
-                >{{ cat.name }}</q-item-section
-              >
+              <q-item-section style="font-size: 0.9rem" class="text text-grey-8">{{ cat.name }}</q-item-section>
             </q-item>
           </template>
         </q-list>
@@ -208,20 +144,9 @@
       <template v-if="itemModel">
         <q-card style="width: 500px; max-width: 100%" flat>
           <div class="relative-position">
-            <q-img
-              :src="itemModel.item.cover"
-              class="relative-position"
-            ></q-img>
-            <q-btn
-              color="white"
-              text-color="black"
-              round
-              flat
-              icon="close"
-              size="sm"
-              class="absolute-top-right q-mt-sm q-mr-sm"
-              v-close-popup
-            ></q-btn>
+            <q-img :src="itemModel.item.cover" class="relative-position"></q-img>
+            <q-btn color="white" text-color="black" round flat icon="close" size="sm"
+              class="absolute-top-right q-mt-sm q-mr-sm" v-close-popup></q-btn>
           </div>
           <q-separator />
           <q-card-section>
@@ -236,10 +161,7 @@
             </div>
           </q-card-section>
         </q-card>
-        <template
-          v-for="(addon_cat, k) in itemModel.item.item_addon_categories"
-          :key="k"
-        >
+        <template v-for="(addon_cat, k) in itemModel.item.item_addon_categories" :key="k">
           <q-card class="q-my-xs" flat ref="cartCatRefs">
             <q-card-section>
               <div class="row justify-between">
@@ -253,31 +175,21 @@
               <div class="row">
                 <div class="col">
                   <div class="text-caption text-red-7">
-                    <template v-if="addon_cat.type === 'single'"
-                      >Choose 1</template
-                    >
+                    <template v-if="addon_cat.type === 'single'">Choose 1</template>
                     <template v-else>
                       <template v-if="addon_cat.min_selection === 0">
-                        <span
-                          class="text-grey-8"
-                          v-if="
-                            addon_cat.max_selection ===
-                              addon_cat.item_addons.length ||
-                            addon_cat.max_selection == 0
-                          "
-                          >Optional</span
-                        >
-                        <span class="text-grey-8" v-else
-                          >Optional. Max selection upto
-                          {{ addon_cat.max_selection }}</span
-                        >
+                        <span class="text-grey-8" v-if="
+                          addon_cat.max_selection ===
+                          addon_cat.item_addons.length ||
+                          addon_cat.max_selection == 0
+                        ">Optional</span>
+                        <span class="text-grey-8" v-else>Optional. Max selection upto
+                          {{ addon_cat.max_selection }}</span>
                       </template>
-                      <template
-                        v-else-if="
-                          addon_cat.item_addons.length ===
-                          addon_cat.max_selection
-                        "
-                      >
+                      <template v-else-if="
+                        addon_cat.item_addons.length ===
+                        addon_cat.max_selection
+                      ">
                         Select at least {{ addon_cat.min_selection }}
                       </template>
                       <template v-else>
@@ -292,22 +204,11 @@
             <q-separator />
             <q-card-section class="q-pa-none">
               <q-list>
-                <q-item
-                  v-ripple
-                  v-for="(addon, m) in addon_cat.item_addons"
-                  :key="m"
-                >
+                <q-item v-ripple v-for="(addon, m) in addon_cat.item_addons" :key="m">
                   <q-item-section avatar>
-                    <q-radio
-                      v-if="addon_cat.type === 'single'"
-                      :val="addon.id"
-                      v-model="addon_cat.selected_addon_id"
-                    ></q-radio>
-                    <q-checkbox
-                      v-else
-                      :val="addon.id"
-                      v-model="addon_cat.selected_addon_ids"
-                    ></q-checkbox>
+                    <q-radio v-if="addon_cat.type === 'single'" :val="addon.id"
+                      v-model="addon_cat.selected_addon_id"></q-radio>
+                    <q-checkbox v-else :val="addon.id" v-model="addon_cat.selected_addon_ids"></q-checkbox>
                   </q-item-section>
                   <q-item-section>
                     <q-item-label>
@@ -325,44 +226,20 @@
         <q-card>
           <q-card-section>
             <div class="text-subtitle1">Instructions</div>
-            <q-input
-              type="textarea"
-              v-model="itemModel.instructions"
-              rows="2"
-              outlined
-              placeholder="Let us know if you have special requirements"
-            ></q-input>
+            <q-input type="textarea" v-model="itemModel.instructions" rows="2" outlined
+              placeholder="Let us know if you have special requirements"></q-input>
           </q-card-section>
           <q-card-actions>
             <div class="row q-col-gutter-md full-width q-px-sm">
               <div class="col-auto flex justify-start items-center">
-                <q-btn
-                  round
-                  size="sm"
-                  icon="remove"
-                  color="grey-3"
-                  text-color="black"
-                  @click="removeQty"
-                ></q-btn>
+                <q-btn round size="sm" icon="remove" color="grey-3" text-color="black" @click="removeQty"></q-btn>
                 <div class="text-subtitle2 q-mx-md">
                   {{ itemModel.qty.toString() }}
                 </div>
-                <q-btn
-                  round
-                  size="sm"
-                  icon="add"
-                  color="grey-3"
-                  text-color="black"
-                  @click="addQty"
-                ></q-btn>
+                <q-btn round size="sm" icon="add" color="grey-3" text-color="black" @click="addQty"></q-btn>
               </div>
               <div class="col">
-                <q-btn
-                  color="yellow-9"
-                  class="full-width"
-                  :label="itemModelButtonLabel"
-                  @click="addItem"
-                ></q-btn>
+                <q-btn color="yellow-9" class="full-width" :label="itemModelButtonLabel" @click="addItem"></q-btn>
               </div>
             </div>
           </q-card-actions>
@@ -375,14 +252,10 @@
       <q-card style="width: 500px; max-width: 100%" flat>
         <q-card-section>
           <q-list>
-            <q-item
-              clickable
-              :to="{
-                name: 'Orders',
-                params: { store_id: store_id, table_uuid: uuid },
-              }"
-              class="text-grey-8"
-            >
+            <q-item clickable :to="{
+              name: 'Orders',
+              params: { store_id: store_id, table_uuid: uuid },
+            }" class="text-grey-8">
               <q-item-section avatar>
                 <q-icon name="list_alt"></q-icon>
               </q-item-section>

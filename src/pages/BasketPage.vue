@@ -217,6 +217,12 @@ onMounted(async () => {
       storeModel.value = d.data;
       cartStore.vat_included = storeModel.value.vat_included;
       cartStore.store_service_charge = storeModel.value.service_charge;
+      if(storeModel.value.status != 1) {
+        await $router.push({
+          name: 'Menu',
+          params: { store_id: store_id, table_uuid: uuid },
+        });
+      }
     }
   } catch (e) {
     console.log(e);
@@ -264,6 +270,7 @@ async function payNow() {
             });
           }
         } catch (e) {
+
           Notify.create({
             message: 'Payment Error. Try Again',
             type: 'negative',

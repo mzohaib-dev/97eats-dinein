@@ -6,4 +6,5 @@ export interface Restaurant {
   vat_included: boolean;
   has_dine_in_cod: boolean;
   service_charge: number;
+  status: number;
 }

@@ -55,7 +55,7 @@
       </div>
       <q-card flat>
         <q-card-section v-if="model">
-          <template v-if="model.store.status != 1">
+          <template v-if="model.store.status == 1">
             <template v-for="(cat, i) in model.item_categories" :key="i">
               <q-card style="z-index: 8" flat :data-id="i" ref="refElements">
                 <q-card-section>

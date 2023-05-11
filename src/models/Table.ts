@@ -5,6 +5,7 @@ export interface TableMenu {
     id: number;
     name: string;
     thumbnail: string;
+    status: string;
   },
   item_categories: ItemCategory[],
   table_info: {

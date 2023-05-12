@@ -55,36 +55,46 @@
       </div>
       <q-card flat>
         <q-card-section v-if="model">
-          <template v-for="(cat, i) in model.item_categories" :key="i">
-            <q-card style="z-index: 8" flat :data-id="i" ref="refElements">
-              <q-card-section>
-                <div class="text-h6 text-bold">{{ cat.name }}</div>
-              </q-card-section>
-              <q-separator spaced />
-              <q-card-section class="q-pa-none">
-                <div class="row q-col-gutter-md">
-                  <div class="col-6" v-for="(item, j) in cat.items" :key="j">
-                    <q-card flat>
-                      <div class="relative-position">
-                        <q-img :src="item.thumbnail" class="relative-position" style="border-radius: 10px"
-                          placeholder-src="~assets/placeholder.png" :ratio="1" />
-                        <q-btn color="black" round icon="add" @click="openItemDialog(item)" size="sm"
-                          class="absolute-bottom-right q-mb-sm q-mr-sm">
-                        </q-btn>
-                      </div>
-                      <q-card-section>
-                        <div class="text">{{ item.name }}</div>
-                        <div class="text text-grey-8" v-if="item.price > 0">
-                          AED {{ item.price.toFixed(2) }}
+          <template v-if="model.store.status == 1">
+            <template v-for="(cat, i) in model.item_categories" :key="i">
+              <q-card style="z-index: 8" flat :data-id="i" ref="refElements">
+                <q-card-section>
+                  <div class="text-h6 text-bold">{{ cat.name }}</div>
+                </q-card-section>
+                <q-separator spaced />
+                <q-card-section class="q-pa-none">
+                  <div class="row q-col-gutter-md">
+                    <div class="col-6" v-for="(item, j) in cat.items" :key="j">
+                      <q-card flat>
+                        <div class="relative-position">
+                          <q-img :src="item.thumbnail" class="relative-position" style="border-radius: 10px"
+                            placeholder-src="~assets/placeholder.png" :ratio="1" />
+                          <q-btn color="black" round icon="add" @click="openItemDialog(item)" size="sm"
+                            class="absolute-bottom-right q-mb-sm q-mr-sm">
+                          </q-btn>
                         </div>
-                        <q-chip color="grey-2" class="q-ma-none" text-color="grey-8" square v-else>Price on
-                          Selection</q-chip>
-                      </q-card-section>
-                    </q-card>
+                        <q-card-section>
+                          <div class="text">{{ item.name }}</div>
+                          <div class="text text-grey-8" v-if="item.price > 0">
+                            AED {{ item.price.toFixed(2) }}
+                          </div>
+                          <q-chip color="grey-2" class="q-ma-none" text-color="grey-8" square v-else>Price on
+                            Selection</q-chip>
+                        </q-card-section>
+                      </q-card>
+                    </div>
                   </div>
-                </div>
-              </q-card-section>
-            </q-card>
+                </q-card-section>
+              </q-card>
+            </template>
+          </template>
+          <template v-else>
+            <q-banner class="bg-info text-white">
+              <template v-slot:avatar>
+                <q-icon name="error"></q-icon>
+              </template>
+              Sorry!. The restaurant / store is busy or closed. Cannot take orders.
+            </q-banner>
           </template>
           <div class="window-height flex justify-center items-center">
             <q-img src="~assets/logo_small.png" width="200px" />

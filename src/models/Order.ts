@@ -11,6 +11,7 @@ export interface Order {
   items: OrderItem[];
   store_name: string;
   table_number: string;
+  table_type: string;
 }
 
 export interface OrderItem {

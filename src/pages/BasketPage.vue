@@ -10,7 +10,7 @@
           <q-card flat>
             <q-card-section>
               <div class="text-subtitle1">
-                Table: {{ cartStore.table_number }}
+                {{ cartStore.table_type == 'drive_thru' ? 'Drive Thru' : 'Table: '+cartStore.table_number }}
               </div>
             </q-card-section>
             <q-separator />

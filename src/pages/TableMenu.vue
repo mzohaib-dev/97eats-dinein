@@ -331,6 +331,7 @@ onMounted(async () => {
     );
     model.value = response.data;
     LocalStorage.set('tableNumber', model.value.table_info.table_number);
+    LocalStorage.set('tableType', model.value.table_info.type);
   } catch (e) {
     await $router.push('/');
   }

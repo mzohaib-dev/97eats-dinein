@@ -67,6 +67,18 @@
                 </div>
               </div>
             </q-card-section>
+            <q-card-section v-if="cartStore.table_type == 'drive_thru'">
+              <q-input
+                outlined
+                :error="vehicleInfoError"
+                :error-message="vehicleInfoErrorMessage"
+                ref="vehicleInfo"
+                type="textarea"
+                label="Describe your Vehicle"
+                v-model="cartStore.vehicle_info"
+                hint="Eg: Car number or model or color etc"
+              ></q-input>
+            </q-card-section>
           </q-card>
           <q-card flat class="q-mt-md">
             <q-card-section>
@@ -124,7 +136,7 @@ import { useCartStore } from 'stores/cart';
 import { CartItem } from 'src/models/Cart';
 import { nextTick, onMounted, ref } from 'vue';
 import { useAppStore } from 'stores/app';
-import { Loading, LocalStorage, Notify } from 'quasar';
+import {Loading, LocalStorage, Notify, QInput} from 'quasar';
 import { Frames, PaymentRequestResponse } from 'src/models/Checkout';
 import { api } from 'boot/axios';
 import { Restaurant } from 'src/models/Restaurant';
@@ -233,237 +245,261 @@ onMounted(async () => {
 const cardError = ref('');
 
 async function payNow() {
-  cardError.value = '';
-  if (frames.isCardValid()) {
-    Loading.show();
-    try {
-      const res = await frames.submitCard();
-      if (res.token) {
-        const token = res.token;
-        try {
-          const payRes: { data: PaymentRequestResponse } = await api.post(
-            'dine-in/checkout/request-payment',
-            {
-              type: 'CARD',
-              token: token,
-              basket: cartStore.$state,
+  if(validate()) {
+    cardError.value = '';
+    if (frames.isCardValid()) {
+      Loading.show();
+      try {
+        const res = await frames.submitCard();
+        if (res.token) {
+          const token = res.token;
+          try {
+            const payRes: { data: PaymentRequestResponse } = await api.post(
+              'dine-in/checkout/request-payment',
+              {
+                type: 'CARD',
+                token: token,
+                basket: cartStore.$state,
+              }
+            );
+            if (payRes.data.status == 'Pending') {
+              appStore.order = {id: payRes.data.order_details.order_id};
+              LocalStorage.set('orderId', appStore.order.id);
+              window.location.href = payRes.data._links.redirect.href;
+            } else if (payRes.data.status == 'Authorized') {
+              await $router.push({
+                name: 'OrderView',
+                params: {
+                  store_id: store_id,
+                  table_uuid: uuid,
+                  id: payRes.data.order_details.order_id,
+                },
+                query: {success: 'true'},
+              });
+            } else {
+              await $router.push({
+                name: 'PaymentFailure',
+                params: {store_id: store_id, table_uuid: uuid},
+              });
             }
-          );
-          if (payRes.data.status == 'Pending') {
-            appStore.order = { id: payRes.data.order_details.order_id };
-            LocalStorage.set('orderId', appStore.order.id);
-            window.location.href = payRes.data._links.redirect.href;
-          } else if (payRes.data.status == 'Authorized') {
-            await $router.push({
-              name: 'OrderView',
-              params: {
-                store_id: store_id,
-                table_uuid: uuid,
-                id: payRes.data.order_details.order_id,
-              },
-              query: { success: 'true' },
-            });
-          } else {
-            await $router.push({
-              name: 'PaymentFailure',
-              params: { store_id: store_id, table_uuid: uuid },
-            });
-          }
-        } catch (e) {
+          } catch (e) {
 
-          Notify.create({
-            message: 'Payment Error. Try Again',
-            type: 'negative',
-          });
-          frames.enableSubmitForm();
+            Notify.create({
+              message: 'Payment Error. Try Again',
+              type: 'negative',
+            });
+            frames.enableSubmitForm();
+          }
         }
+      } catch (e) {
+        console.log(e);
       }
-    } catch (e) {
-      console.log(e);
+      Loading.hide();
+    } else {
+      cardError.value = 'Please enter a valid card number';
     }
-    Loading.hide();
-  } else {
-    cardError.value = 'Please enter a valid card number';
   }
 }
 
 async function payCash() {
-  Loading.show();
-  try {
-    const payRes: { data: PaymentRequestResponse } = await api.post(
-      'dine-in/checkout/request-payment',
-      {
-        type: 'CASH',
-        basket: cartStore.$state,
-      }
-    );
-    appStore.order = { id: payRes.data.order_details.order_id };
-    LocalStorage.set('orderId', appStore.order.id);
-    $router
-      .push({
-        name: 'OrderView',
-        params: {
-          store_id: store_id,
-          table_uuid: uuid,
-          id: payRes.data.order_details.order_id,
-        },
-        query: { success: 'true' },
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  } catch (e) {
-    Notify.create({
-      message: 'Payment Error. Try Again',
-      type: 'negative',
-    });
-  }
-  Loading.hide();
-}
-
-async function payApple() {
-  //console.log('Clicked Apple Pay Button');
-  // logs.value.push('Clicked Apple Pay Button')
-  if (!window.ApplePaySession) {
-    return;
-  }
-
-  // Define ApplePayPaymentRequest
-  const request = {
-    countryCode: 'AE',
-    currencyCode: 'AED',
-    merchantCapabilities: ['supports3DS'],
-    supportedNetworks: ['visa', 'masterCard', 'amex', 'discover'],
-    total: {
-      label: 'Order Total',
-      type: 'final',
-      amount: cartStore.grandTotal.toFixed(2),
-    },
-  };
-
-  // Create ApplePaySession
-  const session = new window.ApplePaySession(3, request);
-  //console.log('Session:');
-  //console.log(session);
-  // logs.value.push('Session Created')
-  session.onvalidatemerchant = async (event: { validationURL: string }) => {
-    // logs.value.push('Validation URL: '+event.validationURL)
-    const res = await api.post('dine-in/apple-pay-merchant-session', {
-      validation_url: event.validationURL,
-    });
-    // logs.value.push(JSON.stringify(res.data))
+  if(validate()) {
+    Loading.show();
     try {
-      session.completeMerchantValidation(res.data);
-    } catch (e: any) {
-      // logs.value.push(e.toString())
-    }
-  };
-
-  session.onpaymentauthorized = (event: {
-    payment: { token: { paymentData: any } };
-  }) => {
-    // Define ApplePayPaymentAuthorizationResult
-    // logs.value.push(JSON.stringify(event.payment))
-    if (event.payment.token.paymentData) {
-      const result = {
-        status: window.ApplePaySession.STATUS_SUCCESS,
-      };
-
-      session.completePayment(result);
-      Loading.show();
-      // logs.value.push('Calling Checkout')
-      // logs.value.push('Checkout Request Params')
-      // logs.value.push(JSON.stringify({
-      // type: "applepay",
-      //token_data: event.payment.token.paymentData
-      //}))
-      //logs.value.push(process.env.CHECKOUT_TOKEN_URL)
-      api
-        .post(
-          process.env.CHECKOUT_TOKEN_URL,
-          {
-            type: 'applepay',
-            token_data: event.payment.token.paymentData,
+      const payRes: { data: PaymentRequestResponse } = await api.post(
+        'dine-in/checkout/request-payment',
+        {
+          type: 'CASH',
+          basket: cartStore.$state,
+        }
+      );
+      appStore.order = {id: payRes.data.order_details.order_id};
+      LocalStorage.set('orderId', appStore.order.id);
+      $router
+        .push({
+          name: 'OrderView',
+          params: {
+            store_id: store_id,
+            table_uuid: uuid,
+            id: payRes.data.order_details.order_id,
           },
-          {
-            withCredentials: false,
-            headers: {
-              Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY,
-            },
-          }
-        )
-        .then((res: { data: { token: string } }) => {
-          // logs.value.push('Checkout Token: '+res.data.token)
-          // logs.value.push('Calling Request Payment')
-          Loading.show();
-          api
-            .post('dine-in/checkout/request-payment', {
-              type: 'APPLE_PAY',
-              token: res.data.token,
-              basket: cartStore.$state,
-            })
-            .then((payRes: { data: PaymentRequestResponse }) => {
-              // logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
-              if (payRes.data.status == 'Pending') {
-                appStore.order = { id: payRes.data.order_details.order_id };
-                LocalStorage.set('orderId', appStore.order.id);
-                window.location.href = payRes.data._links.redirect.href;
-              } else if (payRes.data.status == 'Authorized') {
-                $router
-                  .push({
-                    name: 'OrderView',
-                    params: {
-                      store_id: store_id,
-                      table_uuid: uuid,
-                      id: payRes.data.order_details.order_id,
-                    },
-                    query: { success: 'true' },
-                  })
-                  .catch((e) => console.log(e));
-              } else {
-                $router
-                  .push({
-                    name: 'PaymentFailure',
-                    params: { store_id: store_id, table_uuid: uuid },
-                  })
-                  .catch((e) => console.log(e))
-                  .finally(() => Loading.hide());
-              }
-            })
-            .catch((e) => {
-              // logs.value.push('Calling Request Payment Failed')
-              // logs.value.push(e.response.data.message)
-              Notify.create({
-                message: 'Payment Error Occurred',
-                type: 'negative',
-              });
-            });
+          query: {success: 'true'},
         })
         .catch((e) => {
-          // logs.value.push('Calling Checkout Failed')
-          Notify.create({
-            message: 'Payment Error Occurred For Checkout',
-            type: 'negative',
-          });
-          // logs.value.push(JSON.stringify(e))
-        })
-        .finally(() => {
-          Loading.hide();
+          console.log(e);
         });
-    } else {
-      const result = {
-        status: window.ApplePaySession.STATUS_FAILURE,
-      };
-
-      session.completePayment(result);
+    } catch (e) {
+      Notify.create({
+        message: 'Payment Error. Try Again',
+        type: 'negative',
+      });
     }
-  };
+    Loading.hide();
+  }
+}
 
-  session.oncancel = (event: any) => {
-    // Payment cancelled by WebKit
-  };
+const vehicleInfoErrorMessage = ref('')
+const vehicleInfoError = ref(false)
+const vehicleInfo = ref<QInput|null>(null)
+function validate() {
+  vehicleInfoErrorMessage.value = ''
+  vehicleInfoError.value = false
+  if(cartStore.table_type == 'drive_thru' && !cartStore.vehicle_info) {
+    Notify.create({
+      type:'negative',
+      message: 'Please enter your vehicle details'
+    })
+    vehicleInfo.value?.focus()
+    vehicleInfoErrorMessage.value = 'Enter details'
+    vehicleInfoError.value = true
+    return false
+  }
+  return true
+}
+async function payApple() {
+  if(validate()) {
+    //console.log('Clicked Apple Pay Button');
+    // logs.value.push('Clicked Apple Pay Button')
+    if (!window.ApplePaySession) {
+      return;
+    }
 
-  session.begin();
+    // Define ApplePayPaymentRequest
+    const request = {
+      countryCode: 'AE',
+      currencyCode: 'AED',
+      merchantCapabilities: ['supports3DS'],
+      supportedNetworks: ['visa', 'masterCard', 'amex', 'discover'],
+      total: {
+        label: 'Order Total',
+        type: 'final',
+        amount: cartStore.grandTotal.toFixed(2),
+      },
+    };
+
+    // Create ApplePaySession
+    const session = new window.ApplePaySession(3, request);
+    //console.log('Session:');
+    //console.log(session);
+    // logs.value.push('Session Created')
+    session.onvalidatemerchant = async (event: { validationURL: string }) => {
+      // logs.value.push('Validation URL: '+event.validationURL)
+      const res = await api.post('dine-in/apple-pay-merchant-session', {
+        validation_url: event.validationURL,
+      });
+      // logs.value.push(JSON.stringify(res.data))
+      try {
+        session.completeMerchantValidation(res.data);
+      } catch (e: any) {
+        // logs.value.push(e.toString())
+      }
+    };
+
+    session.onpaymentauthorized = (event: {
+      payment: { token: { paymentData: any } };
+    }) => {
+      // Define ApplePayPaymentAuthorizationResult
+      // logs.value.push(JSON.stringify(event.payment))
+      if (event.payment.token.paymentData) {
+        const result = {
+          status: window.ApplePaySession.STATUS_SUCCESS,
+        };
+
+        session.completePayment(result);
+        Loading.show();
+        // logs.value.push('Calling Checkout')
+        // logs.value.push('Checkout Request Params')
+        // logs.value.push(JSON.stringify({
+        // type: "applepay",
+        //token_data: event.payment.token.paymentData
+        //}))
+        //logs.value.push(process.env.CHECKOUT_TOKEN_URL)
+        api
+          .post(
+            process.env.CHECKOUT_TOKEN_URL,
+            {
+              type: 'applepay',
+              token_data: event.payment.token.paymentData,
+            },
+            {
+              withCredentials: false,
+              headers: {
+                Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY,
+              },
+            }
+          )
+          .then((res: { data: { token: string } }) => {
+            // logs.value.push('Checkout Token: '+res.data.token)
+            // logs.value.push('Calling Request Payment')
+            Loading.show();
+            api
+              .post('dine-in/checkout/request-payment', {
+                type: 'APPLE_PAY',
+                token: res.data.token,
+                basket: cartStore.$state,
+              })
+              .then((payRes: { data: PaymentRequestResponse }) => {
+                // logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
+                if (payRes.data.status == 'Pending') {
+                  appStore.order = {id: payRes.data.order_details.order_id};
+                  LocalStorage.set('orderId', appStore.order.id);
+                  window.location.href = payRes.data._links.redirect.href;
+                } else if (payRes.data.status == 'Authorized') {
+                  $router
+                    .push({
+                      name: 'OrderView',
+                      params: {
+                        store_id: store_id,
+                        table_uuid: uuid,
+                        id: payRes.data.order_details.order_id,
+                      },
+                      query: {success: 'true'},
+                    })
+                    .catch((e) => console.log(e));
+                } else {
+                  $router
+                    .push({
+                      name: 'PaymentFailure',
+                      params: {store_id: store_id, table_uuid: uuid},
+                    })
+                    .catch((e) => console.log(e))
+                    .finally(() => Loading.hide());
+                }
+              })
+              .catch((e) => {
+                // logs.value.push('Calling Request Payment Failed')
+                // logs.value.push(e.response.data.message)
+                Notify.create({
+                  message: 'Payment Error Occurred',
+                  type: 'negative',
+                });
+              });
+          })
+          .catch((e) => {
+            // logs.value.push('Calling Checkout Failed')
+            Notify.create({
+              message: 'Payment Error Occurred For Checkout',
+              type: 'negative',
+            });
+            // logs.value.push(JSON.stringify(e))
+          })
+          .finally(() => {
+            Loading.hide();
+          });
+      } else {
+        const result = {
+          status: window.ApplePaySession.STATUS_FAILURE,
+        };
+
+        session.completePayment(result);
+      }
+    };
+
+    session.oncancel = (event: any) => {
+      // Payment cancelled by WebKit
+    };
+
+    session.begin();
+  }
 }
 
 const baseRequest = {
@@ -534,102 +570,104 @@ async function initGooglePay() {
 }
 
 function payGoogle() {
-  const paymentDataRequest = Object.assign(
-    {},
-    baseRequest
-  ) as google.payments.api.PaymentDataRequest;
-  paymentDataRequest.allowedPaymentMethods = [cardPaymentMethod];
+  if(validate()) {
+    const paymentDataRequest = Object.assign(
+      {},
+      baseRequest
+    ) as google.payments.api.PaymentDataRequest;
+    paymentDataRequest.allowedPaymentMethods = [cardPaymentMethod];
 
-  paymentDataRequest.transactionInfo = {
-    totalPriceStatus: 'FINAL',
-    totalPrice: cartStore.grandTotal.toFixed(2),
-    currencyCode: 'AED',
-    countryCode: 'AE',
-  };
+    paymentDataRequest.transactionInfo = {
+      totalPriceStatus: 'FINAL',
+      totalPrice: cartStore.grandTotal.toFixed(2),
+      currencyCode: 'AED',
+      countryCode: 'AE',
+    };
 
-  paymentDataRequest.merchantInfo = {
-    merchantName: process.env.GOOGLE_PAY_MERCHANT_NAME,
-    merchantId: process.env.GOOGLE_PAY_MERCHANT_ID,
-  };
+    paymentDataRequest.merchantInfo = {
+      merchantName: process.env.GOOGLE_PAY_MERCHANT_NAME,
+      merchantId: process.env.GOOGLE_PAY_MERCHANT_ID,
+    };
 
-  paymentsClient
-    .loadPaymentData(paymentDataRequest)
-    .then(function (paymentData) {
-      // if using gateway tokenization, pass this token without modification
-      const paymentToken = paymentData.paymentMethodData.tokenizationData.token;
-      console.log(paymentToken);
-      api
-        .post(
-          process.env.CHECKOUT_TOKEN_URL,
-          {
-            type: 'googlepay',
-            token_data: JSON.parse(paymentToken),
-          },
-          {
-            withCredentials: false,
-            headers: {
-              Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY,
+    paymentsClient
+      .loadPaymentData(paymentDataRequest)
+      .then(function (paymentData) {
+        // if using gateway tokenization, pass this token without modification
+        const paymentToken = paymentData.paymentMethodData.tokenizationData.token;
+        console.log(paymentToken);
+        api
+          .post(
+            process.env.CHECKOUT_TOKEN_URL,
+            {
+              type: 'googlepay',
+              token_data: JSON.parse(paymentToken),
             },
-          }
-        )
-        .then((res: { data: { token: string } }) => {
-          // logs.value.push('Checkout Token: '+res.data.token)
-          // logs.value.push('Calling Request Payment')
-          Loading.show();
-          api
-            .post('dine-in/checkout/request-payment', {
-              type: 'GOOGLE_PAY',
-              token: res.data.token,
-              basket: cartStore.$state,
-            })
-            .then((payRes: { data: PaymentRequestResponse }) => {
-              // logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
-              if (payRes.data.status == 'Pending') {
-                appStore.order = { id: payRes.data.order_details.order_id };
-                LocalStorage.set('orderId', appStore.order.id);
-                window.location.href = payRes.data._links.redirect.href;
-              } else if (payRes.data.status == 'Authorized') {
-                $router
-                  .push({
-                    name: 'OrderView',
-                    params: {
-                      store_id: store_id,
-                      table_uuid: uuid,
-                      id: payRes.data.order_details.order_id,
-                    },
-                    query: { success: 'true' },
-                  })
-                  .catch((e) => console.log(e));
-              } else {
-                $router
-                  .push({
-                    name: 'PaymentFailure',
-                    params: { store_id: store_id, table_uuid: uuid },
-                  })
-                  .catch((e) => console.log(e))
-                  .finally(() => Loading.hide());
-              }
-            })
-            .catch((e) => {
-              // logs.value.push('Calling Request Payment Failed')
-              // logs.value.push(e.response.data.message)
-              Notify.create({
-                message: 'Payment Error Occurred',
-                type: 'negative',
+            {
+              withCredentials: false,
+              headers: {
+                Authorization: 'Bearer ' + process.env.CHECKOUT_PUBLIC_API_KEY,
+              },
+            }
+          )
+          .then((res: { data: { token: string } }) => {
+            // logs.value.push('Checkout Token: '+res.data.token)
+            // logs.value.push('Calling Request Payment')
+            Loading.show();
+            api
+              .post('dine-in/checkout/request-payment', {
+                type: 'GOOGLE_PAY',
+                token: res.data.token,
+                basket: cartStore.$state,
+              })
+              .then((payRes: { data: PaymentRequestResponse }) => {
+                // logs.value.push('Payment Response: '+JSON.stringify(payRes.data))
+                if (payRes.data.status == 'Pending') {
+                  appStore.order = {id: payRes.data.order_details.order_id};
+                  LocalStorage.set('orderId', appStore.order.id);
+                  window.location.href = payRes.data._links.redirect.href;
+                } else if (payRes.data.status == 'Authorized') {
+                  $router
+                    .push({
+                      name: 'OrderView',
+                      params: {
+                        store_id: store_id,
+                        table_uuid: uuid,
+                        id: payRes.data.order_details.order_id,
+                      },
+                      query: {success: 'true'},
+                    })
+                    .catch((e) => console.log(e));
+                } else {
+                  $router
+                    .push({
+                      name: 'PaymentFailure',
+                      params: {store_id: store_id, table_uuid: uuid},
+                    })
+                    .catch((e) => console.log(e))
+                    .finally(() => Loading.hide());
+                }
+              })
+              .catch((e) => {
+                // logs.value.push('Calling Request Payment Failed')
+                // logs.value.push(e.response.data.message)
+                Notify.create({
+                  message: 'Payment Error Occurred',
+                  type: 'negative',
+                });
               });
+          })
+          .catch((e) => {
+            Notify.create({
+              message: 'Payment Error Occurred For Checkout',
+              type: 'negative',
             });
-        })
-        .catch((e) => {
-          Notify.create({
-            message: 'Payment Error Occurred For Checkout',
-            type: 'negative',
-          });
-        })
-    })
-    .catch(function (err) {
-      // show error in developer console for debugging
-      console.error(err);
-    });
+          })
+      })
+      .catch(function (err) {
+        // show error in developer console for debugging
+        console.error(err);
+      });
+  }
 }
 </script>
 <style scoped></style>

@@ -10,7 +10,7 @@
           <q-card flat>
             <q-card-section>
               <div class="text-subtitle1">
-                Table: {{ cartStore.table_number }}
+                {{ cartStore.table_type == 'drive_thru' ? 'Drive Thru' : 'Table: '+cartStore.table_number }}
               </div>
             </q-card-section>
             <q-separator />
@@ -66,6 +66,15 @@
                   AED {{ cartStore.grandTotal.toFixed(2) }}
                 </div>
               </div>
+            </q-card-section>
+            <q-card-section v-if="cartStore.table_type == 'drive_thru'">
+              <q-input
+                outlined
+                ref="vehicleInfo"
+                type="textarea"
+                label="Describe your Vehicle (Eg: Car number or model or color etc)"
+                v-model="cartStore.vehicle_info"
+              ></q-input>
             </q-card-section>
           </q-card>
           <q-card flat class="q-mt-md">
@@ -320,8 +329,8 @@ async function payCash() {
   }
   Loading.hide();
 }
-
 async function payApple() {
+
   //console.log('Clicked Apple Pay Button');
   // logs.value.push('Clicked Apple Pay Button')
   if (!window.ApplePaySession) {

@@ -22,7 +22,7 @@
               <q-img placeholder-src="~assets/g.jpg" :src="model ? model.store.thumbnail : ''"></q-img>
             </q-avatar>
             <div class="text-grey-7 text-caption">
-              Table No. {{ tableNumber }}
+              {{ tableType == 'drive_thru' ? 'Drive Thru' : 'Table: ' + tableNumber}}
             </div>
             <template v-if="appStore.user">
               <q-btn icon="account_circle" size="md" round flat @click="accountDialog = true"></q-btn>
@@ -331,6 +331,9 @@ onMounted(async () => {
     );
     model.value = response.data;
     LocalStorage.set('tableNumber', model.value.table_info.table_number);
+    LocalStorage.set('tableType', model.value.table_info.type);
+    cartStore.table_type = model.value.table_info.type
+    cartStore.table_number = model.value.table_info.table_number
   } catch (e) {
     await $router.push('/');
   }
@@ -416,6 +419,10 @@ const model = ref<TableMenu | null>(null);
 
 const tableNumber = computed(() => {
   return model.value ? model.value.table_info.table_number : '';
+});
+
+const tableType = computed(() => {
+  return model.value ? model.value.table_info.type : '';
 });
 
 const itemDialog = ref(false);

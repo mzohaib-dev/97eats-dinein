@@ -10,5 +10,6 @@ export interface TableMenu {
   item_categories: ItemCategory[],
   table_info: {
     table_number: string;
+    type: string;
   }
 }

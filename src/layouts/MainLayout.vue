@@ -40,8 +40,15 @@ onMounted(() => {
         cartStore.instruction = instructions as string;
       }
       const tableNumber = LocalStorage.getItem('tableNumber') as string;
+      const tableType = LocalStorage.getItem('tableType') as string;
       if (tableNumber) {
         cartStore.table_number = tableNumber;
+      } else {
+        cartStore.resetCart();
+        return;
+      }
+      if (tableType) {
+        cartStore.table_type = tableType;
       } else {
         cartStore.resetCart();
         return;

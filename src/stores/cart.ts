@@ -6,10 +6,12 @@ export const useCartStore = defineStore('cart', {
   state: () => ({
     table_uuid: '',
     table_number: '',
+    table_type: '',
     items: [] as CartItem[],
     instruction: '',
     vat_included: true,
     store_service_charge: 0,
+    vehicle_info: ''
   }),
 
   getters: {

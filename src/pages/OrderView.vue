@@ -58,8 +58,8 @@
             <q-separator />
             <q-card-section>
               <div class="text-grey-8 text-subtitle2">
-                {{ orderModel.store_name }} | Table:
-                {{ orderModel.table_number }}
+                {{ orderModel.store_name }} |
+                {{ orderModel.table_type == 'drive_thru' ? 'Drive Thru' : 'Table: ' + orderModel.table_number }}
               </div>
             </q-card-section>
             <q-separator />
